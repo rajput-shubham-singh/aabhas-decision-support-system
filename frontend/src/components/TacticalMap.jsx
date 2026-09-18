@@ -225,6 +225,19 @@ function FluidDistrictCamera({ targetSector }) {
   return null;
 }
 
+function MapResizeWatcher() {
+  const map = useMap();
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        map.invalidateSize();
+      } catch (e) {}
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [map]);
+  return null;
+}
+
 export default function TacticalMap({
   rainfall = 30,
   selectedSector,
@@ -293,7 +306,7 @@ export default function TacticalMap({
   }, [rainfall, sectors, habitations]);
 
   return (
-    <div className="relative w-full h-[650px] rounded-2xl overflow-hidden border border-slate-700/80 bg-slate-950 shadow-[0_0_50px_rgba(0,0,0,0.9)]">
+    <div className="relative w-full h-[540px] min-h-[520px] rounded-2xl overflow-hidden border border-slate-700/80 bg-slate-950 shadow-[0_0_50px_rgba(0,0,0,0.9)]">
 
       <div className="absolute top-4 left-14 z-[400] bg-slate-950/90 backdrop-blur-md px-4 py-2 rounded-xl border border-slate-800 flex items-center gap-3 pointer-events-none shadow-2xl">
         <span className="relative flex h-3 w-3">
@@ -317,7 +330,7 @@ export default function TacticalMap({
         minZoom={8}
         scrollWheelZoom={true}
         className="w-full h-full cursor-grab active:cursor-grabbing"
-        style={{ height: '100%', width: '100%', background: '#020617' }}
+        style={{ height: '100%', width: '100%', minHeight: '520px', background: '#020617' }}
       >
 
         <TileLayer
@@ -333,6 +346,7 @@ export default function TacticalMap({
         />
 
         <FluidDistrictCamera targetSector={activeSector} />
+        <MapResizeWatcher />
 
         {liveSectors.map((sec) => {
           const isSelected = activeSector?.id === sec.id;

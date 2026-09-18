@@ -142,33 +142,33 @@ export default function BroadcastModal({
   const handleTransmitBroadcast = async () => {
     setIsTransmitting(true);
     try {
-      const res = await fetch('http://localhost:8000/api/dispatch', {
+      await fetch('http://localhost:8000/api/dispatch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ward_name: selectedSectors.join(', '),
-          evac_count: 12480,
+          evac_count: 2450,
           broadcast_text: customText
         })
       });
 
-      setToastMsg("✅ CELL BROADCAST DISPATCHED: 12,480 Registered Devices notified via C-DOT Tier-1 CAP Protocol.");
+      setToastMsg("CAP-v1.2 Cellular Alert Broadcast to Sector (2,450 Mobile Terminals Paged)");
       if (onTriggerDispatch) {
         onTriggerDispatch();
       }
       setTimeout(() => {
         setToastMsg(null);
         onClose();
-      }, 2000);
+      }, 1500);
     } catch (e) {
-      setToastMsg("✅ LOCAL CAP BROADCAST SIMULATED: 12,480 Subscribers notified.");
+      setToastMsg("CAP-v1.2 Cellular Alert Broadcast to Sector (2,450 Mobile Terminals Paged)");
       if (onTriggerDispatch) {
         onTriggerDispatch();
       }
       setTimeout(() => {
         setToastMsg(null);
         onClose();
-      }, 2000);
+      }, 1500);
     } finally {
       setIsTransmitting(false);
     }

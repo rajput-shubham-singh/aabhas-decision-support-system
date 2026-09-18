@@ -632,7 +632,12 @@ export default function App() {
         <div className="flex items-center gap-3 flex-shrink-0">
 
           <button
-            onClick={() => setIsRoadBlocked(prev => !prev)}
+            onClick={() => {
+              const nextBlocked = !isRoadBlocked;
+              setIsRoadBlocked(nextBlocked);
+              const fb = calculateLocalFallback(rainfall);
+              setEvacuationCorridors(generateFallbackCorridors(fb.habitations, rainfall, nextBlocked));
+            }}
             className={`px-2.5 py-1 rounded-md text-xs transition-all cursor-pointer border ${
               isRoadBlocked
                 ? 'bg-rose-50 text-rose-700 border-rose-400 font-bold shadow-sm animate-pulse'
