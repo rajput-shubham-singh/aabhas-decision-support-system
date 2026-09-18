@@ -1,11 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://beunztzqqabivgvzfocu.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJldW56dHpxcWFiaXZndnpmb2N1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3MTA2NjMsImV4cCI6MjEwNTI4NjY2M30.6HlCoAH4Rz8vorDGMdivvvUf5OMua_54vyucMY4ojDk';
+const FALLBACK_URL = 'https://beunztzqqabivgvzfocu.supabase.co';
+const FALLBACK_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJldW56dHpxcWFiaXZndnpmb2N1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3MTA2NjMsImV4cCI6MjEwNTI4NjY2M30.6HlCoAH4Rz8vorDGMdivvvUf5OMua_54vyucMY4ojDk';
 
-export const supabase = (supabaseUrl && supabaseAnonKey) 
-  ? createClient(supabaseUrl, supabaseAnonKey) 
-  : null;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || FALLBACK_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || FALLBACK_KEY;
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: { persistSession: false }
+});
 
 export async function fetchLiveReliefCamps() {
   if (!supabase) return null;
