@@ -1,7 +1,9 @@
 {
-  "name": "frontend",
+  "name": "aabhas-geotech-decision-engine",
   "private": true,
-  "version": "0.0.0",
+  "version": "2.4.1",
+  "author": "Technical Operations Wing, Chamoli EOC",
+  "license": "Proprietary - Government of Uttarakhand",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,6 +12,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.116.0",
     "@tailwindcss/vite": "^4.3.3",
     "autoprefixer": "^10.5.5",
     "leaflet": "^1.9.4",

@@ -11,7 +11,7 @@ export default function FieldManifestPrint({
 
   return (
     <div className="print-only p-8 text-black bg-white font-mono text-xs">
-      {/* Official Government / NDRF Header */}
+
       <div className="border-b-2 border-black pb-4 mb-4 text-center">
         <h1 className="text-lg font-black uppercase tracking-wider">
           MINISTRY OF HOME AFFAIRS (MHA) | GOVT OF INDIA
@@ -24,7 +24,6 @@ export default function FieldManifestPrint({
         </h3>
       </div>
 
-      {/* Manifest Metadata */}
       <div className="grid grid-cols-2 gap-4 border border-black p-3 mb-4 text-[11px]">
         <div>
           <div><strong>INCIDENT SECTOR:</strong> Joshimath Urban Hazard Corridor (Chamoli, UK)</div>
@@ -40,7 +39,6 @@ export default function FieldManifestPrint({
         </div>
       </div>
 
-      {/* Prioritized Habitations Triage Table */}
       <div className="mb-4">
         <h4 className="font-bold text-xs uppercase mb-1">
           PRIORITIZED HABITATIONS ACTION TABLE (SORTED BY RELOCATION PRIORITY INDEX - RPI)
@@ -79,7 +77,6 @@ export default function FieldManifestPrint({
         </table>
       </div>
 
-      {/* Designated Safe Shelters Breakdown */}
       <div className="mb-6">
         <h4 className="font-bold text-xs uppercase mb-1">
           DESIGNATED RELIEF CAMPS & TRANSIT FACILITIES
@@ -108,7 +105,6 @@ export default function FieldManifestPrint({
         </table>
       </div>
 
-      {/* Standard Operating Sign-Off Lines */}
       <div className="grid grid-cols-3 gap-6 pt-6 border-t-2 border-black text-[10px]">
         <div className="space-y-8">
           <div>FIELD INCIDENT COMMANDER:</div>

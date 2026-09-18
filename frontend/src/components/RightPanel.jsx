@@ -24,7 +24,7 @@ export default function RightPanel({
   onOpenDispatchForWard
 }) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [zoneFilter, setZoneFilter] = useState('ALL'); // 'ALL' | 'RED' | 'ORANGE' | 'GREEN'
+  const [zoneFilter, setZoneFilter] = useState('ALL');
 
   if (collapsed) {
     return (
@@ -52,7 +52,7 @@ export default function RightPanel({
 
   return (
     <aside className="w-96 md:w-[420px] bg-zinc-950/95 border-l border-zinc-800/80 flex flex-col z-20 flex-shrink-0 shadow-2xl overflow-hidden transition-all font-mono">
-      {/* Panel Header */}
+
       <div className="flex items-center justify-between px-3.5 py-2.5 bg-zinc-900/90 border-b border-zinc-800">
         <div className="flex items-center space-x-2">
           <ListOrdered className="w-4 h-4 text-amber-400" />
@@ -69,7 +69,6 @@ export default function RightPanel({
         </button>
       </div>
 
-      {/* Filter and Search Bar */}
       <div className="p-2.5 bg-zinc-900/40 border-b border-zinc-800 space-y-2">
         <div className="relative">
           <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-zinc-500" />
@@ -82,7 +81,6 @@ export default function RightPanel({
           />
         </div>
 
-        {/* Zone Filter Chips */}
         <div className="flex items-center space-x-1.5 text-[10px]">
           <button
             onClick={() => setZoneFilter('ALL')}
@@ -127,7 +125,6 @@ export default function RightPanel({
         </div>
       </div>
 
-      {/* RPI Triage Scrollable List */}
       <div className="flex-1 overflow-y-auto p-2.5 space-y-2">
         {filteredHabitations.length === 0 ? (
           <div className="text-center py-8 text-zinc-500 text-xs">
@@ -153,7 +150,7 @@ export default function RightPanel({
                             : 'bg-zinc-900/50 border-zinc-800 hover:bg-zinc-900/80'))
                 }`}
               >
-                {/* Top Row: Rank, Name, Zone Tag */}
+
                 <div className="flex items-center justify-between pb-1.5 border-b border-zinc-800/80">
                   <div className="flex items-center space-x-2">
                     <span className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-black ${
@@ -183,7 +180,6 @@ export default function RightPanel({
                   </div>
                 </div>
 
-                {/* Metrics Breakdown */}
                 <div className="grid grid-cols-3 gap-1 py-2 text-[10px]">
                   <div className="bg-zinc-950/60 p-1.5 rounded border border-zinc-800/60">
                     <span className="text-zinc-500 block text-[9px]">SLOPE / HAZARD</span>
@@ -203,7 +199,6 @@ export default function RightPanel({
                   </div>
                 </div>
 
-                {/* Assigned Shelter */}
                 <div className="text-[10px] text-zinc-400 pb-2 flex items-center justify-between">
                   <span>Relief Destination:</span>
                   <span className="text-emerald-400 font-semibold truncate max-w-[200px]">
@@ -211,7 +206,6 @@ export default function RightPanel({
                   </span>
                 </div>
 
-                {/* Action Buttons */}
                 <div className="flex items-center space-x-2 pt-1 border-t border-zinc-800/80">
                   <button
                     onClick={(e) => {

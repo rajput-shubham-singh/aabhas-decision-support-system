@@ -32,7 +32,6 @@ export default function DispatchModal({
 
   if (!isOpen) return null;
 
-  // Determine affected targets
   const targets = targetWard 
     ? [targetWard] 
     : (allRedHabitations && allRedHabitations.length > 0 ? allRedHabitations : []);
@@ -41,7 +40,6 @@ export default function DispatchModal({
   const totalPop = targets.reduce((sum, h) => sum + (h.estimated_displaced_population || h.current_houses * 5), 0);
   const totalSmsEst = Math.round(totalHouses * 4.2);
 
-  // Play audio synthetic tactical siren using Web Audio API
   const handleToggleSirenTest = () => {
     if (isPlayingSiren) {
       setIsPlayingSiren(false);
@@ -98,7 +96,6 @@ export default function DispatchModal({
         const data = await res.json();
         setDispatchResult(data);
       } else {
-        // Fallback simulated response
         setDispatchResult({
           status: "DISPATCH_CONFIRMED",
           dispatch_id: `MHA-NDRF-${new Date().getFullYear()}-SIM01`,
@@ -118,7 +115,6 @@ export default function DispatchModal({
         });
       }
     } catch (e) {
-      // Offline fallback
       setDispatchResult({
         status: "DISPATCH_CONFIRMED",
         dispatch_id: `MHA-NDRF-${new Date().getFullYear()}-SIM01`,
@@ -149,8 +145,7 @@ export default function DispatchModal({
   return (
     <div className="fixed inset-0 z-[2000] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="bg-zinc-950 border border-red-500/60 rounded-lg max-w-2xl w-full shadow-2xl overflow-hidden font-mono text-zinc-100 flex flex-col animate-in fade-in zoom-in-95 duration-200">
-        
-        {/* Modal Header */}
+
         <div className="flex items-center justify-between px-5 py-3.5 bg-red-950/40 border-b border-red-500/40">
           <div className="flex items-center space-x-2.5">
             <div className="w-8 h-8 rounded bg-red-900/60 border border-red-500/80 flex items-center justify-center text-red-400">
@@ -173,11 +168,10 @@ export default function DispatchModal({
           </button>
         </div>
 
-        {/* Modal Body */}
         <div className="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
           {!dispatchResult ? (
             <>
-              {/* Target Habitations Summary */}
+
               <div className="p-3 bg-zinc-900/80 border border-zinc-800 rounded space-y-2">
                 <div className="flex items-center justify-between text-xs font-bold text-zinc-300">
                   <span className="uppercase text-amber-400">Target Habitations for Immediate Alert:</span>
@@ -206,14 +200,13 @@ export default function DispatchModal({
                 </div>
               </div>
 
-              {/* Alert Channel Configuration */}
               <div className="space-y-2">
                 <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider block">
                   Alert Transmission Vector Configuration
                 </span>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {/* Cellular SMS Broadcast */}
+
                   <label className="p-2.5 rounded bg-zinc-900 border border-zinc-800 flex items-start space-x-3 cursor-pointer hover:border-zinc-700 transition">
                     <input
                       type="checkbox"
@@ -232,7 +225,6 @@ export default function DispatchModal({
                     </div>
                   </label>
 
-                  {/* Physical Acoustic Siren */}
                   <label className="p-2.5 rounded bg-zinc-900 border border-zinc-800 flex items-start space-x-3 cursor-pointer hover:border-zinc-700 transition">
                     <input
                       type="checkbox"
@@ -252,7 +244,6 @@ export default function DispatchModal({
                   </label>
                 </div>
 
-                {/* Acoustic Test Button */}
                 <div className="flex items-center justify-between p-2 rounded bg-zinc-900/60 border border-zinc-800 text-[11px]">
                   <span className="text-zinc-400">Audio Warning Tone Synthesizer:</span>
                   <button
@@ -266,7 +257,6 @@ export default function DispatchModal({
                 </div>
               </div>
 
-              {/* Warning Notice */}
               <div className="p-3 bg-red-950/20 border border-red-900/50 rounded flex items-start space-x-2.5 text-[11px] text-red-300">
                 <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
                 <span>
@@ -275,7 +265,7 @@ export default function DispatchModal({
               </div>
             </>
           ) : (
-            /* Dispatch Success State */
+
             <div className="space-y-3">
               <div className="p-4 bg-emerald-950/30 border border-emerald-500/50 rounded text-center space-y-2">
                 <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto animate-bounce" />
@@ -287,7 +277,6 @@ export default function DispatchModal({
                 </p>
               </div>
 
-              {/* Dispatch Manifest Receipt */}
               <div className="p-3 bg-zinc-900 border border-zinc-800 rounded space-y-2 text-xs">
                 <div className="flex justify-between pb-1.5 border-b border-zinc-800">
                   <span className="text-zinc-400">DISPATCH ID:</span>
@@ -327,7 +316,6 @@ export default function DispatchModal({
           )}
         </div>
 
-        {/* Modal Footer */}
         <div className="px-5 py-3.5 bg-zinc-900/90 border-t border-zinc-800 flex items-center justify-between">
           <button
             onClick={handleResetAndClose}

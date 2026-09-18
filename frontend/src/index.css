@@ -13,7 +13,6 @@
   }
 }
 
-/* Custom Tactical Scrollbars */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -29,7 +28,6 @@
   background: #475569;
 }
 
-/* Leaflet Dark Customizations */
 .leaflet-container {
   background-color: #050811 !important;
   width: 100% !important;
@@ -64,7 +62,6 @@
   color: #f8fafc !important;
 }
 
-/* Radar Pulsing Animations */
 @keyframes pulse-ring {
   0% {
     transform: scale(0.9);
@@ -84,7 +81,6 @@
   animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Print Specific Styles for Field Manifest */
 @media print {
   body {
     background-color: white !important;

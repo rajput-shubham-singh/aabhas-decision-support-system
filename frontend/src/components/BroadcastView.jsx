@@ -27,7 +27,7 @@ const INITIAL_LOGS = [
   { id: 'CAP-LOG-03', time: '15:10:04 IST', severity: 'INFO', target: 'All Monitored Sectors', text: 'NDRF 8th Bn convoys pre-positioned along NH-7 bypass.' }
 ];
 
-export default function BroadcastView({ habitations = [], rainfall = 65, onTriggerDispatch }) {
+export default function BroadcastView({ habitations = [], rainfall = 65, onTriggerDispatch, onOpenBroadcastModal }) {
   const [towers, setTowers] = useState(INITIAL_TOWERS);
   const [logs, setLogs] = useState(INITIAL_LOGS);
   const [selectedWard, setSelectedWard] = useState('ALL_RED_ZONES');
@@ -55,7 +55,7 @@ export default function BroadcastView({ habitations = [], rainfall = 65, onTrigg
 
       const now = new Date();
       const timeStr = now.toLocaleTimeString('en-GB', { timeZone: 'Asia/Kolkata', hour12: false }) + ' IST';
-      
+
       const newLog = {
         id: `CAP-TX-${Date.now().toString().slice(-4)}`,
         time: timeStr,
@@ -81,7 +81,7 @@ export default function BroadcastView({ habitations = [], rainfall = 65, onTrigg
 
   return (
     <div className="flex-1 flex flex-col h-full bg-slate-50 overflow-y-auto p-4 md:p-6 space-y-4 font-sans text-slate-800 select-none">
-      {/* Toast Notice */}
+
       {broadcastNotice && (
         <div className="fixed top-28 right-6 z-50 bg-slate-900 text-white border border-red-500 shadow-2xl px-4 py-3 rounded-lg flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
           <Radio className="w-5 h-5 text-red-400 animate-pulse flex-shrink-0" />
@@ -89,7 +89,6 @@ export default function BroadcastView({ habitations = [], rainfall = 65, onTrigg
         </div>
       )}
 
-      {/* Header Banner */}
       <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <span className="p-2 rounded-lg bg-blue-900 text-amber-400">
@@ -108,22 +107,31 @@ export default function BroadcastView({ habitations = [], rainfall = 65, onTrigg
         <div className="flex items-center gap-3 flex-wrap">
           <div className="bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-center">
             <div className="text-[10px] uppercase font-bold text-slate-500">Target BTS Towers</div>
-            <div className="text-lg font-black text-slate-900 font-mono-data">4 Transceivers</div>
+            <div className="text-lg font-black text-slate-900 font-mono-data">14 Transceivers</div>
           </div>
           <div className="bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg text-center">
             <div className="text-[10px] uppercase font-bold text-emerald-700">Active Mobile Reach</div>
-            <div className="text-lg font-black text-emerald-700 font-mono-data">{totalImsis.toLocaleString('en-IN')} Devices</div>
+            <div className="text-lg font-black text-emerald-700 font-mono-data">12,480 Devices</div>
           </div>
           <div className="bg-red-50 border border-red-200 px-3 py-1.5 rounded-lg text-center">
             <div className="text-[10px] uppercase font-bold text-red-700">Siren Network</div>
             <div className="text-lg font-black text-red-600 font-mono-data">520 Hz Armed</div>
           </div>
+          {onOpenBroadcastModal && (
+            <button
+              onClick={onOpenBroadcastModal}
+              className="px-3.5 py-2 bg-blue-900 hover:bg-blue-800 active:bg-blue-950 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-sm border border-blue-900 cursor-pointer transition-all whitespace-nowrap"
+              id="btn-open-broadcast-modal-view"
+            >
+              <Radio className="w-3.5 h-3.5 text-amber-400" />
+              <span>Full Gateway Console Modal</span>
+            </button>
+          )}
         </div>
       </div>
 
-      {/* 2-Column Grid: Broadcast Composer & BTS Table */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Left: CAP Broadcast Composer */}
+
         <div className="bg-white border border-slate-200 rounded-xl shadow-xs p-4 flex flex-col justify-between space-y-4">
           <div className="space-y-3">
             <div className="flex items-center justify-between border-b border-slate-200 pb-2">
@@ -136,7 +144,6 @@ export default function BroadcastView({ habitations = [], rainfall = 65, onTrigg
               </span>
             </div>
 
-            {/* Target Selector */}
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div>
                 <label className="block text-[10px] font-bold uppercase text-slate-600 mb-1">Target Geo-Sector</label>
@@ -169,7 +176,6 @@ export default function BroadcastView({ habitations = [], rainfall = 65, onTrigg
               </div>
             </div>
 
-            {/* Siren Toggle Switch */}
             <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg">
               <div className="flex items-center gap-2">
                 {isSirenActive ? (
@@ -193,7 +199,6 @@ export default function BroadcastView({ habitations = [], rainfall = 65, onTrigg
               </button>
             </div>
 
-            {/* Message Body Input */}
             <div>
               <div className="flex items-center justify-between text-[10px] font-bold text-slate-600 mb-1">
                 <span>CELL BROADCAST SMS PAYLOAD</span>
@@ -208,7 +213,6 @@ export default function BroadcastView({ habitations = [], rainfall = 65, onTrigg
             </div>
           </div>
 
-          {/* Trigger Button */}
           <button
             onClick={handleBroadcast}
             disabled={isSending}
@@ -228,9 +232,8 @@ export default function BroadcastView({ habitations = [], rainfall = 65, onTrigg
           </button>
         </div>
 
-        {/* Right: BTS Telecom Towers Status & Live Transmission Logs */}
         <div className="space-y-4 flex flex-col justify-between">
-          {/* BTS Towers Table */}
+
           <div className="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
             <div className="px-4 py-2.5 border-b border-slate-200 bg-slate-50/70 flex items-center justify-between">
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
@@ -259,7 +262,6 @@ export default function BroadcastView({ habitations = [], rainfall = 65, onTrigg
             </div>
           </div>
 
-          {/* Live Transmission Log Feed */}
           <div className="bg-slate-900 text-slate-100 rounded-xl shadow-xs p-4 flex flex-col space-y-2 border border-slate-800">
             <div className="flex items-center justify-between border-b border-slate-800 pb-2">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-400">

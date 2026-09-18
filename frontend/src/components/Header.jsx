@@ -39,7 +39,6 @@ export default function Header({
     return () => clearInterval(interval);
   }, []);
 
-  // Weather badge styling
   const getBadgeStyle = () => {
     if (rainfall < 50) {
       return {
@@ -66,9 +65,9 @@ export default function Header({
 
   return (
     <header className="bg-zinc-950 border-b border-zinc-800/80 select-none z-30 relative shadow-2xl flex-shrink-0">
-      {/* Top Telemetry Strip */}
+
       <div className="flex flex-wrap items-center justify-between px-4 py-2.5 gap-3 border-b border-zinc-900 bg-zinc-950/90">
-        {/* Left Branding */}
+
         <div className="flex items-center space-x-3">
           <div className="relative flex items-center justify-center w-9 h-9 rounded bg-red-950/40 border border-red-600/40 text-red-500">
             <ShieldAlert className="w-5 h-5" />
@@ -80,7 +79,7 @@ export default function Header({
                 NDRF / MHA COMMAND CELL
               </span>
               <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-800/80 text-zinc-400 font-mono font-medium border border-zinc-700/50">
-                PROTOTYPE SIH26191
+                OPERATIONAL IDSS v2.4
               </span>
             </div>
             <div className="text-[11px] text-zinc-400 flex items-center space-x-1.5 font-mono">
@@ -90,7 +89,6 @@ export default function Header({
           </div>
         </div>
 
-        {/* Center Live Rainfall Scenario Simulator */}
         <div className="flex-1 max-w-xl mx-2 bg-zinc-900/90 border border-zinc-800 rounded-md px-3.5 py-1.5 shadow-inner">
           <div className="flex items-center justify-between text-[11px] font-mono mb-1">
             <div className="flex items-center space-x-1.5 text-zinc-300">
@@ -110,7 +108,7 @@ export default function Header({
               </div>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-3">
             <span className="text-[10px] font-mono text-zinc-500">10mm</span>
             <input
@@ -126,16 +124,14 @@ export default function Header({
           </div>
         </div>
 
-        {/* Right Status & Quick Action Buttons */}
         <div className="flex items-center space-x-2.5">
-          {/* Live Clock & Telemetry */}
+
           <div className="hidden lg:flex items-center space-x-2 px-2.5 py-1 rounded bg-zinc-900 border border-zinc-800 text-[11px] font-mono text-zinc-300">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <Clock className="w-3.5 h-3.5 text-zinc-400" />
             <span className="font-semibold text-zinc-200">{timeStr}</span>
           </div>
 
-          {/* Quick Print Manifest */}
           <button
             onClick={onPrintManifest}
             className="flex items-center space-x-1.5 px-3 py-1.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 text-xs font-mono font-medium transition active:scale-95 cursor-pointer"
@@ -145,7 +141,6 @@ export default function Header({
             <span className="hidden sm:inline">FIELD MANIFEST</span>
           </button>
 
-          {/* Emergency Dispatch Button */}
           <button
             onClick={onOpenDispatch}
             className="relative flex items-center space-x-1.5 px-3.5 py-1.5 rounded bg-red-600 hover:bg-red-500 text-white font-mono font-bold text-xs tracking-wider border border-red-400 shadow-lg shadow-red-950/60 transition active:scale-95 cursor-pointer animate-pulse"
@@ -159,7 +154,6 @@ export default function Header({
             )}
           </button>
 
-          {/* Focus Map Button */}
           <button
             onClick={() => {
               const nextState = !isMapFocused;

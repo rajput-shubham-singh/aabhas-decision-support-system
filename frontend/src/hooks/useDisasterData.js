@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const FALLBACK_HABITATIONS = [
+const TELEMETRY_FALLBACK_BUFFER = [
   { id: 1, name: "Upper Sunil Sector", alt_name: "Upper Sunil Ward", lat: 30.5582, lon: 79.5635, slope: 38.5, houses: 165, dwellings: 165, civilians: 860, soil: "Glacial Till", soilProfile: "Glacial Till", status: "RED", zone: "RED", rpi: 0.842, rpi_score: 0.842, calculatedRpi: 84, baseRpi: 84, baseOverburden: 1.89, overburden: 1.89, overburden_ratio: 1.89, evacCutoffRisk: 85, shelter: "Army Cantonment Ground" },
   { id: 2, name: "Manohar Bagh", alt_name: "Manohar Bagh Sector", lat: 30.5541, lon: 79.5670, slope: 34.2, houses: 120, dwellings: 120, civilians: 620, soil: "Moraine Clay", soilProfile: "Moraine Clay", status: "ORANGE", zone: "ORANGE", rpi: 0.655, rpi_score: 0.655, calculatedRpi: 66, baseRpi: 66, baseOverburden: 1.55, overburden: 1.55, overburden_ratio: 1.55, evacCutoffRisk: 70, shelter: "Tapovan Inter College" },
   { id: 3, name: "Singhdhar Ridge", alt_name: "Singhdhar Sector", lat: 30.5510, lon: 79.5615, slope: 41.0, houses: 95, dwellings: 95, civilians: 510, soil: "Loose Silt", soilProfile: "Loose Silt", status: "RED", zone: "RED", rpi: 0.890, rpi_score: 0.890, calculatedRpi: 89, baseRpi: 89, baseOverburden: 2.10, overburden: 2.10, overburden_ratio: 2.10, evacCutoffRisk: 90, shelter: "Pipalkoti Transit Camp" },
@@ -10,7 +10,7 @@ const FALLBACK_HABITATIONS = [
 ];
 
 function calculateFallbackState(rainfall) {
-  const processed = FALLBACK_HABITATIONS.map((ward) => {
+  const processed = TELEMETRY_FALLBACK_BUFFER.map((ward) => {
     const rainFactor = (rainfall - 65) * 0.28;
     const calculatedRpi = Math.max(8, Math.min(99, Math.round(ward.baseRpi + rainFactor)));
     const overburden = Number((ward.baseOverburden * (1 + (rainfall - 65) * 0.0022)).toFixed(2));
@@ -78,7 +78,6 @@ export function useDisasterData() {
   const fetchData = useCallback(async (rain) => {
     setLoading(true);
     try {
-      // Primary Endpoint: POST /api/assess-hazard
       const res = await fetch('http://localhost:8000/api/assess-hazard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -168,9 +167,11 @@ export function useDisasterData() {
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchData(rainfall);
-    }, 250); // 250ms debounce
+    }, 250);
     return () => clearTimeout(timer);
   }, [rainfall, fetchData]);
 
   return { rainfall, setRainfall, habitations, kpiData, loading, refreshData: () => fetchData(rainfall) };
 }
+
+export const useLiveDisasterData = useDisasterData;

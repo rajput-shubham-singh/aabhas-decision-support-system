@@ -15,7 +15,7 @@ except ImportError:
     from sklearn.ensemble import GradientBoostingRegressor
     USE_XGB = False
 
-# ==================== 1. MATHEMATICAL & GEOTECHNICAL FORMULATION ====================
+
 
 def compute_factor_of_safety(
     slope_deg: np.ndarray,
@@ -26,11 +26,7 @@ def compute_factor_of_safety(
     z: np.ndarray,
     m: np.ndarray
 ) -> np.ndarray:
-    """
-    Infinite Slope Stability Equation with Seepage / Saturated Water Table:
-    FoS = (c_prime + (gamma - m * gamma_w) * z * (cos(beta)^2) * tan(phi_prime)) /
-          (gamma * z * sin(beta) * cos(beta))
-    """
+    
     beta = np.radians(slope_deg)
     phi = np.radians(phi_prime_deg)
     
@@ -39,14 +35,14 @@ def compute_factor_of_safety(
     cos_b_sq = cos_b ** 2
     tan_phi = np.tan(phi)
     
-    # Numerator (Resisting Shear Strength)
+    
     effective_unit_weight = gamma - (m * gamma_w)
     normal_stress_term = effective_unit_weight * z * cos_b_sq * tan_phi
     resisting_strength = c_prime + normal_stress_term
     
-    # Denominator (Driving Shear Stress)
+    
     driving_stress = gamma * z * sin_b * cos_b
-    driving_stress = np.maximum(driving_stress, 0.001)  # Prevent division by zero
+    driving_stress = np.maximum(driving_stress, 0.001)  
     
     fos = resisting_strength / driving_stress
     return np.clip(fos, 0.10, 15.0)
@@ -55,10 +51,7 @@ def compute_insar_subsidence_velocity(
     insar_base_rate: np.ndarray,
     rainfall_24h: np.ndarray
 ) -> np.ndarray:
-    """
-    InSAR Empirical Velocity (mm/year) scaled by seasonal monsoonal colluvium saturation:
-    V_subsidence = V_base * (1.0 + 2.2 * (rainfall_24h / 120.0)^1.6)
-    """
+    
     saturation_multiplier = 1.0 + 2.2 * ((rainfall_24h / 120.0) ** 1.6)
     return insar_base_rate * saturation_multiplier
 
@@ -68,32 +61,21 @@ def compute_ground_truth_rpi(
     pore_water_ratio: np.ndarray,
     building_density: np.ndarray
 ) -> np.ndarray:
-    """
-    Recalibrated Ground Truth Relocation Priority Index (RPI):
-    RPI_base = (0.35 * (1.0 / np.maximum(FoS, 0.75))) + (0.20 * (insar_base_rate / 20.0))
-    RPI_dynamic = 0.45 * (pore_water_ratio ** 1.4)
-    hazard_rpi = np.clip(RPI_base + RPI_dynamic + (0.05 * building_density / 220.0), 0.10, 0.98)
-    """
+    
     rpi_base = (0.35 * (1.0 / np.maximum(fos, 0.75))) + (0.20 * (insar_base_rate / 20.0))
     rpi_dynamic = 0.45 * (pore_water_ratio ** 1.4)
     hazard_rpi = np.clip(rpi_base + rpi_dynamic + (0.05 * building_density / 220.0), 0.10, 0.98)
     return hazard_rpi
 
-# ==================== 2. DATASET GENERATION (5,000 STRATIFIED SAMPLES) ====================
 
 def generate_calibrated_joshimath_dataset(n_samples: int = 5000, random_state: int = 42) -> pd.DataFrame:
-    """
-    Generates 5,000 synthetic records rigorously bounded by Joshimath's 3 geological zones:
-    1. Glacial Till / Colluvium (Upper Sunil / Singhdhar): 2,000 samples
-    2. Moraine Silt / Scree (Manohar Bagh / Marwari): 1,800 samples
-    3. Gneissic Bedrock / Quartzite (Ravigram / Gandhi Nagar): 1,200 samples
-    """
+    
     np.random.seed(random_state)
-    gamma_w = 9.81  # kN/m^3
+    gamma_w = 9.81  
     
     records = []
     
-    # ---------------- Zone 1: Glacial Till / Colluvium (Upper Sunil / Singhdhar) ----------------
+    
     n1 = 2000
     slope1 = np.random.uniform(36.0, 44.0, size=n1)
     cohesion1 = np.random.uniform(9.0, 16.0, size=n1)
@@ -104,7 +86,7 @@ def generate_calibrated_joshimath_dataset(n_samples: int = 5000, random_state: i
     z1 = np.random.uniform(4.5, 7.5, size=n1)
     rain1 = np.random.uniform(0.0, 220.0, size=n1)
     
-    # ---------------- Zone 2: Moraine Silt / Scree (Manohar Bagh / Marwari) ----------------
+    
     n2 = 1800
     slope2 = np.random.uniform(26.0, 35.5, size=n2)
     cohesion2 = np.random.uniform(16.0, 26.0, size=n2)
@@ -115,7 +97,7 @@ def generate_calibrated_joshimath_dataset(n_samples: int = 5000, random_state: i
     z2 = np.random.uniform(4.0, 6.5, size=n2)
     rain2 = np.random.uniform(0.0, 220.0, size=n2)
     
-    # ---------------- Zone 3: Gneissic Bedrock / Quartzite (Ravigram / Gandhi Nagar) ----------------
+    
     n3 = 1200
     slope3 = np.random.uniform(11.0, 24.5, size=n3)
     cohesion3 = np.random.uniform(35.0, 55.0, size=n3)
@@ -126,7 +108,6 @@ def generate_calibrated_joshimath_dataset(n_samples: int = 5000, random_state: i
     z3 = np.random.uniform(3.5, 5.5, size=n3)
     rain3 = np.random.uniform(0.0, 220.0, size=n3)
     
-    # Concatenate stratified zones
     slope = np.concatenate([slope1, slope2, slope3])
     cohesion = np.concatenate([cohesion1, cohesion2, cohesion3])
     phi = np.concatenate([phi1, phi2, phi3])
@@ -136,15 +117,15 @@ def generate_calibrated_joshimath_dataset(n_samples: int = 5000, random_state: i
     z = np.concatenate([z1, z2, z3])
     rainfall = np.concatenate([rain1, rain2, rain3])
     
-    # Water table / Pore water ratio m (scales 0.05 to 0.95 with rainfall)
+    
     m = np.clip(0.05 + 0.90 * ((rainfall / 220.0) ** 1.15), 0.05, 0.95)
     
-    # Physics Calculations
+    
     fos = compute_factor_of_safety(slope, cohesion, phi, gamma, gamma_w, z, m)
     v_sub = compute_insar_subsidence_velocity(insar_base, rainfall)
     rpi_true = compute_ground_truth_rpi(fos, insar_base, m, density)
     
-    # Add minor measurement noise (std = 0.005)
+    
     noise = np.random.normal(0, 0.005, size=n_samples)
     rpi_target = np.clip(rpi_true + noise, 0.10, 0.98)
     
@@ -161,11 +142,11 @@ def generate_calibrated_joshimath_dataset(n_samples: int = 5000, random_state: i
         "hazard_rpi": rpi_target
     })
     
-    # Shuffle records
+   
     df = df.sample(frac=1.0, random_state=random_state).reset_index(drop=True)
     return df
 
-# ==================== 3. MODEL TRAINING & CALIBRATION ====================
+
 
 def train_and_export_calibrated_model():
     print("[*] Generating 5,000 stratified Joshimath geotechnical records (CBRI & ISRO/DInSAR calibrated)...")
@@ -236,7 +217,7 @@ def train_and_export_calibrated_model():
     print(f"  • MAE:                {mae:.5f}  (Target <= 0.02500)")
     print("-" * 60)
     
-    # Feature Importances
+    
     if hasattr(regressor, "feature_importances_"):
         importances = regressor.feature_importances_
         feature_imp_df = pd.DataFrame({
@@ -249,7 +230,7 @@ def train_and_export_calibrated_model():
             print(f"  {rank+1}. {row['Feature']:<24}: {row['Importance']*100:.2f}%")
     print("=" * 60)
     
-    # Save Pipeline to models/hazard_model.pkl
+    
     models_dir = os.path.join(os.path.dirname(__file__), "models")
     os.makedirs(models_dir, exist_ok=True)
     model_path = os.path.join(models_dir, "hazard_model.pkl")

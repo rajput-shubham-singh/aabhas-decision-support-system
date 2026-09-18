@@ -1,0 +1,124 @@
+[
+  {
+    "id": "joshimath-cluster",
+    "numericId": 1,
+    "name": "Joshimath Ward Cluster (Singhdhar/Sunil)",
+    "ward_no": "W-03/04",
+    "rpi": 79,
+    "status": "RED",
+    "slope": "38.5°",
+    "overburden": "2.73x",
+    "evac_cutoff": "90%",
+    "allocated_camp": "Military Cantonment & Helipad",
+    "center": [30.5562, 79.5648],
+    "polygon": [
+      [30.5595, 79.5582],
+      [30.5608, 79.5630],
+      [30.5575, 79.5675],
+      [30.5540, 79.5668],
+      [30.5518, 79.5625],
+      [30.5532, 79.5588],
+      [30.5565, 79.5570]
+    ],
+    "markers": [
+      { "coords": [30.5580, 79.5600], "label": "Upper Sunil Colluvial Scarp" },
+      { "coords": [30.5545, 79.5640], "label": "Hotel Mount View Shear Axis" },
+      { "coords": [30.5530, 79.5618], "label": "Singhdhar Tension Fissures" }
+    ]
+  },
+  {
+    "id": "helang-valley",
+    "numericId: 4,
+    "name": "Helang Valley Axis",
+    "ward_no": "SEC-H1",
+    "rpi": 84,
+    "status": "RED",
+    "slope": "41.5°",
+    "overburden": "2.21x",
+    "evac_cutoff": "95%",
+    "allocated_camp": "Pipalkoti Relief Hub",
+    "center": [30.5280, 79.5105],
+    "polygon": [
+      [30.5315, 79.5080],
+      [30.5305, 79.5140],
+      [30.5265, 79.5135],
+      [30.5248, 79.5090],
+      [30.5270, 79.5065]
+    ],
+    "markers": [
+      { "coords": [30.5285, 79.5100], "label": "NH-07 Debris Chute" },
+      { "coords": [30.5268, 79.5115], "label": "Helang Scree Toe Slump" }
+    ]
+  },
+  {
+    "id": "karnaprayag-confluence",
+    "numericId": 2,
+    "name": "Karnaprayag Confluence Sector",
+    "ward_no": "W-01/02",
+    "rpi": 53,
+    "status": "ORANGE",
+    "slope": "32.0°",
+    "overburden": "2.12x",
+    "evac_cutoff": "65%",
+    "allocated_camp": "Gauchar Airstrip Center",
+    "center": [30.2610, 79.2215],
+    "polygon": [
+      [30.2645, 79.2185],
+      [30.2638, 79.2240],
+      [30.2595, 79.2250],
+      [30.2575, 79.2210],
+      [30.2600, 79.2175]
+    ],
+    "markers": [
+      { "coords": [30.2620, 79.2210], "label": "Bahuguna Nagar Foundation Slip" },
+      { "coords": [30.2590, 79.2225], "label": "Pindar-Alaknanda Riverbank Scarp" }
+    ]
+  },
+  {
+    "id": "tharali-basin",
+    "numericId": 3,
+    "name": "Tharali Pindar River Basin",
+    "ward_no": "SEC-T3",
+    "rpi": 74,
+    "status": "RED",
+    "slope": "29.5°",
+    "overburden": "1.85x",
+    "evac_cutoff": "80%",
+    "allocated_camp": "Gairsain Bhararisain Complex",
+    "center": [30.0630, 79.4950],
+    "polygon": [
+      [30.0680, 79.4910],
+      [30.0670, 79.4990],
+      [30.0610, 79.5005],
+      [30.0585, 79.4945],
+      [30.0620, 79.4890]
+    ],
+    "markers": [
+      { "coords": [30.0640, 79.4960], "label": "Pindar Riverbank Toe Slump" },
+      { "coords": [30.0615, 79.4930], "label": "Tharali Market Scarp" }
+    ]
+  },
+  {
+    "id": "ravigram-baseline",
+    "numericId": 5,
+    "name": "Ravigram Shelf (Stable Bedrock)",
+    "ward_no": "W-09",
+    "rpi": 24,
+    "status": "GREEN",
+    "slope": "11.5°",
+    "overburden": "1.05x",
+    "evac_cutoff": "15%",
+    "allocated_camp": "Local In-situ Refuge",
+    "center": [30.5495, 79.5785],
+    "polygon": [
+      [30.5518, 79.5760],
+      [30.5512, 79.5815],
+      [30.5478, 79.5810],
+      [30.5472, 79.5768],
+      [30.5490, 79.5748]
+    ],
+    "markers": [
+      { "coords": [30.5495, 79.5780], "label": "Vaikrita Crystalline Baseline" }
+    ]
+  }
+]

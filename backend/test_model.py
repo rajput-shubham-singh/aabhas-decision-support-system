@@ -2,7 +2,8 @@ import joblib
 import pandas as pd
 import numpy as np
 
-# Load trained model artifact
+
+
 artifact = joblib.load("models/hazard_model.pkl")
 if isinstance(artifact, dict) and "pipeline" in artifact:
     model = artifact["pipeline"]
@@ -11,7 +12,7 @@ elif isinstance(artifact, dict) and "model" in artifact:
 else:
     model = artifact
 
-# Test Scenarios based on Joshimath Ground Reality
+
 test_cases = [
     {
         "name": "Scenario 1: Dry Weather - Bedrock (Ravigram)",

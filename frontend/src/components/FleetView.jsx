@@ -22,7 +22,7 @@ const INITIAL_FLEET = [
   { id: 'BUS-06', name: 'NDRF Transit Bus 06', type: '4x4 Medical Transit Unit', capacity: 20, current_pax: 6, assignedSector: 'Upper Sunil Ward', route: 'Emergency Corridor -> Army Hospital', status: 'DISPATCHED', driver: 'Paramedic Lt. V. Sharma', contact: 'CH-1 Tactical Direct', fuel: 92, readiness: 'Priority Trauma Evac' }
 ];
 
-export default function FleetView({ habitations = [], onInitiateEvac }) {
+export default function FleetView({ habitations = [], onInitiateEvac, onOpenFleetModal }) {
   const [fleet, setFleet] = useState(INITIAL_FLEET);
   const [selectedVehicle, setSelectedVehicle] = useState(fleet[0]);
   const [dispatchToast, setDispatchToast] = useState(null);
@@ -49,7 +49,7 @@ export default function FleetView({ habitations = [], onInitiateEvac }) {
 
   return (
     <div className="flex-1 flex flex-col h-full bg-slate-50 overflow-y-auto p-4 md:p-6 space-y-4 font-sans text-slate-800 select-none">
-      {/* Toast Notification */}
+
       {dispatchToast && (
         <div className="fixed top-28 right-6 z-50 bg-slate-900 text-white border border-emerald-500/50 shadow-2xl px-4 py-3 rounded-lg flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
           <Radio className="w-5 h-5 text-emerald-400 animate-pulse flex-shrink-0" />
@@ -57,7 +57,6 @@ export default function FleetView({ habitations = [], onInitiateEvac }) {
         </div>
       )}
 
-      {/* Header Banner */}
       <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
@@ -88,6 +87,16 @@ export default function FleetView({ habitations = [], onInitiateEvac }) {
             <div className="text-[10px] uppercase font-bold text-blue-900">Throughput</div>
             <div className="text-lg font-black text-blue-900 font-mono-data">{totalCapacity * 3} pax/hr</div>
           </div>
+          {onOpenFleetModal && (
+            <button
+              onClick={onOpenFleetModal}
+              className="px-3.5 py-2 bg-blue-900 hover:bg-blue-800 active:bg-blue-950 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-sm border border-blue-900 cursor-pointer transition-all whitespace-nowrap"
+              id="btn-open-fleet-modal-view"
+            >
+              <Truck className="w-3.5 h-3.5 text-amber-400" />
+              <span>Full Manifest Console</span>
+            </button>
+          )}
           {onInitiateEvac && (
             <button
               onClick={onInitiateEvac}
@@ -100,9 +109,8 @@ export default function FleetView({ habitations = [], onInitiateEvac }) {
         </div>
       </div>
 
-      {/* Fleet Table & Vehicle Inspection Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Left: Tactical Roster Table (2 cols) */}
+
         <div className="lg:col-span-2 bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden flex flex-col">
           <div className="px-4 py-3 border-b border-slate-200 bg-slate-50/70 flex items-center justify-between">
             <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
@@ -196,7 +204,6 @@ export default function FleetView({ habitations = [], onInitiateEvac }) {
           </div>
         </div>
 
-        {/* Right: Selected Vehicle Telemetry Card */}
         <div className="bg-white border border-slate-200 rounded-xl shadow-xs p-4 flex flex-col justify-between space-y-4">
           <div>
             <div className="flex items-center justify-between border-b border-slate-200 pb-2 mb-3">
@@ -246,7 +253,6 @@ export default function FleetView({ habitations = [], onInitiateEvac }) {
                 </div>
               </div>
 
-              {/* Road Condition Alert */}
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-2.5 text-[11px] text-amber-900">
                 <div className="font-bold flex items-center gap-1 mb-0.5">
                   <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />

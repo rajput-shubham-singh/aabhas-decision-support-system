@@ -22,7 +22,7 @@ export default function LeftPanel({
   shelters,
   rainfall
 }) {
-  const [activeTab, setActiveTab] = useState('diagnostics'); // 'diagnostics' | 'math_engine' | 'shelters'
+  const [activeTab, setActiveTab] = useState('diagnostics');
 
   if (collapsed) {
     return (
@@ -41,14 +41,13 @@ export default function LeftPanel({
     );
   }
 
-  // Find max overburden habitation
   const topOverburdenHab = habitations && habitations.length > 0
     ? [...habitations].sort((a, b) => b.overburden_ratio - a.overburden_ratio)[0]
     : null;
 
   return (
     <aside className="w-84 md:w-96 bg-zinc-950/95 border-r border-zinc-800/80 flex flex-col z-20 flex-shrink-0 shadow-2xl overflow-hidden transition-all">
-      {/* Panel Header */}
+
       <div className="flex items-center justify-between px-3.5 py-2.5 bg-zinc-900/90 border-b border-zinc-800">
         <div className="flex items-center space-x-2">
           <Activity className="w-4 h-4 text-red-400" />
@@ -65,7 +64,6 @@ export default function LeftPanel({
         </button>
       </div>
 
-      {/* Tabs */}
       <div className="flex border-b border-zinc-800/80 bg-zinc-950 text-[11px] font-mono">
         <button
           onClick={() => setActiveTab('diagnostics')}
@@ -99,13 +97,12 @@ export default function LeftPanel({
         </button>
       </div>
 
-      {/* Scrollable Content Body */}
       <div className="flex-1 overflow-y-auto p-3 space-y-3 font-mono">
         {activeTab === 'diagnostics' && (
           <>
-            {/* 4 Primary KPI Cards */}
+
             <div className="grid grid-cols-2 gap-2">
-              {/* Card 1: Monitored Habitations */}
+
               <div className="p-2.5 rounded bg-zinc-900/80 border border-zinc-800 relative overflow-hidden">
                 <div className="flex items-center justify-between text-zinc-400 text-[10px] uppercase">
                   <span>Monitored Sectors</span>
@@ -117,7 +114,6 @@ export default function LeftPanel({
                 <div className="text-[9px] text-zinc-500 mt-0.5">Joshimath Corridor</div>
               </div>
 
-              {/* Card 2: Breached Red Zones */}
               <div className={`p-2.5 rounded border relative overflow-hidden ${
                 (summary?.red_zone_count || 0) > 0 
                   ? 'bg-red-950/30 border-red-500/40 text-red-400' 
@@ -138,7 +134,6 @@ export default function LeftPanel({
                 </div>
               </div>
 
-              {/* Card 3: Displaced Population */}
               <div className="p-2.5 rounded bg-zinc-900/80 border border-zinc-800 relative overflow-hidden">
                 <div className="flex items-center justify-between text-zinc-400 text-[10px] uppercase">
                   <span>Evac Population</span>
@@ -152,7 +147,6 @@ export default function LeftPanel({
                 </div>
               </div>
 
-              {/* Card 4: Peak Overburden Ratio */}
               <div className="p-2.5 rounded bg-zinc-900/80 border border-zinc-800 relative overflow-hidden">
                 <div className="flex items-center justify-between text-zinc-400 text-[10px] uppercase">
                   <span>Peak Overburden</span>
@@ -165,7 +159,6 @@ export default function LeftPanel({
               </div>
             </div>
 
-            {/* Physics Structural Overburden Explainer Card */}
             {topOverburdenHab && (
               <div className="p-3 rounded bg-zinc-900/90 border border-zinc-800 space-y-2.5">
                 <div className="flex items-center justify-between">
@@ -183,8 +176,7 @@ export default function LeftPanel({
                     <span>Safe Structural Limit: <strong className="text-zinc-200">{topOverburdenHab.safe_house_capacity} Houses</strong></span>
                     <span>Actual Load: <strong className="text-red-400">{topOverburdenHab.current_houses} Houses</strong></span>
                   </div>
-                  
-                  {/* Visual Multi-bar for Overburden */}
+
                   <div className="w-full bg-zinc-950 h-2.5 rounded-full overflow-hidden flex border border-zinc-800">
                     <div 
                       className="bg-emerald-500 h-full" 
@@ -211,7 +203,6 @@ export default function LeftPanel({
               </div>
             )}
 
-            {/* Zone Distribution Bar */}
             <div className="p-3 rounded bg-zinc-900/90 border border-zinc-800 space-y-2">
               <div className="flex items-center justify-between text-[11px] font-bold text-zinc-300 uppercase">
                 <span className="flex items-center space-x-1.5">
@@ -255,7 +246,6 @@ export default function LeftPanel({
               </div>
             </div>
 
-            {/* Quick Terrain Note */}
             <div className="p-2.5 rounded bg-zinc-900/50 border border-zinc-800/80 text-[10px] text-zinc-400 flex items-start space-x-2">
               <Info className="w-3.5 h-3.5 text-zinc-400 flex-shrink-0 mt-0.5" />
               <span>
