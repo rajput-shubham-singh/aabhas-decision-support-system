@@ -2,10 +2,12 @@
 @import "leaflet/dist/leaflet.css";
 
 html, body, #root {
-  height: 100%;
+  min-height: 100vh;
   width: 100%;
   margin: 0;
   padding: 0;
+  overflow-y: auto !important;
+  height: auto !important;
 }
 
 @layer base {
@@ -15,8 +17,8 @@ html, body, #root {
     background-color: #090D14;
     color: #f1f5f9;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    overflow: hidden;
-    user-select: none;
+    overflow-y: auto !important;
+    min-height: 100vh;
   }
 }
 
@@ -120,3 +122,4 @@ html, body, #root {
     display: none !important;
   }
 }
+

@@ -30,8 +30,8 @@ export default function ReliefLogisticsModal({
 
   if (!isOpen) return null;
 
-  const totalCapacity = camps.reduce((acc, c) => acc + (c.total_bed_capacity || c.capacity || 0), 0);
-  const totalLiveOcc = camps.reduce((acc, c) => acc + (c.live_occupancy || c.occupancy || 0), 0);
+  const totalCapacity = camps.reduce((acc, c) => acc + (c.bed_capacity || c.total_bed_capacity || c.capacity || 0), 0);
+  const totalLiveOcc = camps.reduce((acc, c) => acc + (c.occupied_beds !== undefined ? c.occupied_beds : (c.live_occupancy || c.occupancy || 0)), 0);
   const totalFreeBeds = Math.max(0, totalCapacity - totalLiveOcc);
   const totalDisplaced = relocationPlan.reduce((acc, p) => acc + (p.displaced_pop || 0), 0);
   const overflowCount = relocationPlan.filter(p => p.is_overflow_split).length;
@@ -44,34 +44,16 @@ export default function ReliefLogisticsModal({
     <div className="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto animate-in fade-in duration-150" id="relief-logistics-modal">
       <div className="bg-white rounded-xl border border-slate-300 shadow-2xl max-w-5xl w-full max-h-[92vh] flex flex-col overflow-hidden">
 
-        <div className="bg-slate-900 text-white px-5 py-3.5 flex items-center justify-between border-b border-slate-800 flex-shrink-0">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-lg bg-blue-800 text-amber-400">
-              <Tent className="w-5 h-5" />
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white flex-shrink-0">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-100 text-blue-800 border border-blue-200">DDMA RELIEF ALLOCATION</span>
+              <span className="text-xs text-slate-500 font-medium">Chamoli District Logistics Register</span>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-black tracking-wide uppercase">
-                  MULTI-VECTOR CARRYING CAPACITY &amp; RELOCATION MANIFEST
-                </h3>
-                <span className="text-[10px] bg-emerald-900/90 text-emerald-300 border border-emerald-600 px-2 py-0.5 rounded font-mono-data font-bold">
-                  AUTONOMOUS CONSTRAINED MATCHING ACTIVE
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-400 font-mono-data">
-                Sovereign MHA Logistics Framework | Real-Time Optimization Engine (Rainfall: {rainfall} mm/24h)
-              </p>
-            </div>
+            <h3 className="text-base font-bold text-slate-900 mt-1">Shelter Capacity &amp; Resource Manifest</h3>
+            <p className="text-xs text-slate-500">Live Intake Overview Across 4 Designated Evacuation Centers</p>
           </div>
-
-          <button 
-            onClick={onClose}
-            className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
-            id="btn-close-logistics-modal"
-            title="Close Manifest"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-lg font-bold p-1 cursor-pointer">✕</button>
         </div>
 
         <div className="bg-slate-50 border-b border-slate-200 px-5 py-3 grid grid-cols-2 sm:grid-cols-4 gap-3 flex-shrink-0">
@@ -112,17 +94,17 @@ export default function ReliefLogisticsModal({
             <div className="flex items-center justify-between mb-2.5">
               <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
                 <Award className="w-4 h-4 text-blue-900" />
-                1. Safe Bedrock Reception Camps Multi-Vector Infrastructure
+                1. Designated Reception Shelters &amp; Facility Logistics
               </h4>
-              <span className="text-[11px] font-mono-data text-slate-500">
-                Formula: (Beds×0.4) + (Water×0.3) + (Medical×0.2) + (Access×0.1)
+              <span className="text-[11px] text-slate-500 font-medium">
+                Standard DDMA Relief Intake Capacity
               </span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               {camps.map((camp) => {
-                const totalBeds = camp.total_bed_capacity || camp.capacity || 100;
-                const occ = camp.live_occupancy !== undefined ? camp.live_occupancy : (camp.occupancy || 0);
+                const totalBeds = camp.bed_capacity || camp.total_bed_capacity || camp.capacity || 100;
+                const occ = camp.occupied_beds !== undefined ? camp.occupied_beds : (camp.live_occupancy !== undefined ? camp.live_occupancy : (camp.occupancy || 0));
                 const occPct = camp.occupancy_pct !== undefined ? camp.occupancy_pct : Math.round((occ / totalBeds) * 100);
                 const score = camp.suitability_score !== undefined ? camp.suitability_score : 85;
                 const isFull = occPct >= 100;
@@ -225,10 +207,10 @@ export default function ReliefLogisticsModal({
               <div>
                 <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
                   <Users className="w-4 h-4 text-blue-900" />
-                  2. Live Habitation Relocation Manifest (Constrained Optimization Output)
+                  2. Ward Relocation &amp; Transit Manifest
                 </h4>
                 <p className="text-[11px] text-slate-500">
-                  Automated greedy capacity-constrained matching with automatic overflow cohort splitting
+                  Live intake and sector allocation across designated relief centers
                 </p>
               </div>
 

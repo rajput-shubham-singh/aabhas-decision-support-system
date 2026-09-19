@@ -6,12 +6,10 @@ import SheltersView from './components/SheltersView';
 import BroadcastView from './components/BroadcastView';
 import ReliefLogisticsModal from './components/ReliefLogisticsModal';
 import EvacuationEngine from './components/EvacuationEngine';
-import GeotechnicalModal from './components/GeotechnicalModal';
 import EvacuationProtocolModal from './components/EvacuationProtocolModal';
 import BroadcastModal from './components/BroadcastModal';
 import FleetTransitView from './components/FleetTransitView';
-import { useDisasterData } from './hooks/useDisasterData.js';
-import { fetchLiveReliefCamps } from './lib/supabaseClient.js';
+import { supabase, logDispatchAudit, fetchLiveReliefCamps, fetchLiveTransitFleet, fetchLiveWardsRisk } from './supabaseClient.js';
 import { getDynamicSectors, BALANCED_SECTORS, SAFE_RELIEF_CAMPS, TOPOGRAPHIC_SECTORS } from './data/sectors.js';
 import { 
   Activity, 
@@ -186,57 +184,133 @@ export default function App() {
   const [telemetry, setTelemetry] = useState(() => calculateLocalFallback(65).telemetry);
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [selectedWard, setSelectedWard] = useState(null);
-  const [activeView, setActiveView] = useState('gis');
+  const [activeView, setActiveView] = useState(() => {
+    try {
+      return localStorage.getItem('aabhas_active_view') || 'gis';
+    } catch (e) {
+      return 'gis';
+    }
+  });
   const [isAdvisorOpen, setIsAdvisorOpen] = useState(false);
   const [isEvacModalOpen, setIsEvacModalOpen] = useState(false);
   const [isLogisticsModalOpen, setIsLogisticsModalOpen] = useState(false);
   const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
-  const [inspectSector, setInspectSector] = useState(null);
+  const [panTarget, setPanTarget] = useState(null);
   const [timeStr, setTimeStr] = useState('');
   const [advisorInput, setAdvisorInput] = useState('');
   const [isAdvisorLoading, setIsAdvisorLoading] = useState(false);
   const [isDispatching, setIsDispatching] = useState(false);
   const [showDispatchToast, setShowDispatchToast] = useState(false);
   const [dispatchToastMsg, setDispatchToastMsg] = useState('');
-  const [advisorMessages, setAdvisorMessages] = useState([
-    {
-      sender: 'bot',
-      title: 'MHA Disaster Intelligence Briefing (Chamoli District):',
-      text: 'Monitoring Chamoli Multi-Sector Grid (Joshimath, Karnaprayag, Tharali, Helang). Real-time OR-Tools optimization engine and ISRO-NRSC InSAR feeds linked.',
-      bullets: [
-        'Joshimath Cluster and Helang Axis require urgent relocation under active monsoon saturation.',
-        'Subsidence velocity: 4.1 mm/day along Main Central Thrust (MCT) zone.',
-        'Strategic bedrock relief grid: 5 regional hubs (Gopeshwar, Gauchar, Pipalkoti, Joshimath Cantonment, Gairsain) operational.'
-      ]
-    }
-  ]);
+  const [advisorMessages, setAdvisorMessages] = useState(() => {
+    try {
+      const saved = localStorage.getItem('aabhas_ndrf_chat');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return [
+      {
+        sender: 'bot',
+        title: 'MHA Disaster Intelligence Briefing (Chamoli District):',
+        text: 'Monitoring Chamoli Multi-Sector Grid (Joshimath, Karnaprayag, Tharali, Helang). Real-time OR-Tools optimization engine and ISRO-NRSC InSAR feeds linked.',
+        bullets: [
+          'Joshimath Cluster and Helang Axis require urgent relocation under active monsoon saturation.',
+          'Subsidence velocity: 4.1 mm/day along Main Central Thrust (MCT) zone.',
+          'Strategic bedrock relief grid: 5 regional hubs (Gopeshwar, Gauchar, Pipalkoti, Joshimath Cantonment, Gairsain) operational.'
+        ]
+      }
+    ];
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('aabhas_active_view', activeView);
+    } catch (e) {}
+  }, [activeView]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('aabhas_ndrf_chat', JSON.stringify(advisorMessages));
+    } catch (e) {}
+  }, [advisorMessages]);
 
   useEffect(() => {
     let isMounted = true;
-    async function hydrateSupabaseCamps() {
+    async function hydrateSupabaseData() {
       try {
-        const liveCamps = await fetchLiveReliefCamps();
+        const [liveCamps, liveWards] = await Promise.all([
+          fetchLiveReliefCamps(),
+          fetchLiveWardsRisk()
+        ]);
+
         if (liveCamps && liveCamps.length > 0 && isMounted) {
-          setCamps(prev => prev.map(c => {
-            const match = liveCamps.find(lc => lc.id === c.id);
+          setCamps(prev => prev.map((c, idx) => {
+            const match = liveCamps.find(lc => lc.camp_code === c.id || lc.id === c.id || lc.id === idx + 1 || lc.name === c.name);
             if (match) {
               return {
                 ...c,
                 ...match,
-                suitability_score: match.suitability_score !== undefined ? match.suitability_score : c.suitability_score,
-                total_bed_capacity: match.total_beds || c.total_bed_capacity,
-                water_available_liters_day: match.water_reserve_lpd || c.water_available_liters_day,
-                food_packets: match.food_ration_packets || c.food_packets
+                name: match.name || c.name,
+                total_bed_capacity: match.bed_capacity || match.total_beds || c.total_bed_capacity,
+                capacity: match.bed_capacity || match.capacity || c.capacity,
+                totalBeds: match.bed_capacity || match.totalBeds || c.totalBeds,
+                occupied_beds: match.occupied_beds !== undefined ? match.occupied_beds : c.occupied_beds,
+                current_occupancy: match.occupied_beds !== undefined ? match.occupied_beds : c.current_occupancy,
+                occupancy: match.occupied_beds !== undefined ? match.occupied_beds : c.occupancy,
+                status: match.status || c.status,
+                safe_corridor: match.route_axis || c.safe_corridor,
+                tag: match.tag || c.tag,
+                medicalStaff: match.medical_team || c.medicalStaff,
+                medical_unit: match.medical_team || c.medical_unit
               };
             }
             return c;
           }));
         }
+
+        if (liveWards && liveWards.length > 0 && isMounted) {
+          setHabitations(prev => {
+            const updated = prev.map(h => {
+              const match = liveWards.find(lw => lw.name === h.name || lw.ward_no === parseInt(h.ward_no?.replace(/\D/g, '')) || lw.id === h.id);
+              if (match) {
+                const rpiVal = Number((match.rpi_score / 100).toFixed(3));
+                const calculatedRpi = match.rpi_score;
+                const status = match.risk_level || (calculatedRpi >= 70 ? 'RED' : (calculatedRpi >= 40 ? 'ORANGE' : 'GREEN'));
+                const hazardTier = status === 'RED' ? 'CRITICAL_RED' : (status === 'ORANGE' ? 'WARNING_AMBER' : 'STABLE_GREEN');
+                return {
+                  ...h,
+                  rpi: rpiVal,
+                  rpi_score: rpiVal,
+                  calculatedRpi,
+                  status,
+                  zone: status,
+                  tier: hazardTier,
+                  hazard_tier: hazardTier,
+                  dwellings: match.dwellings_red_tagged || h.dwellings,
+                  houses: match.dwellings_red_tagged || h.houses,
+                  cracked_units: match.dwellings_red_tagged || h.cracked_units,
+                  slope: `${match.slope_deg}°`,
+                  slope_deg: match.slope_deg,
+                  overburden: match.overburden_factor || h.overburden,
+                  overburden_ratio: match.overburden_factor || h.overburden_ratio,
+                  evacCutoffRisk: match.cutoff_risk_percent || h.evacCutoffRisk
+                };
+              }
+              return h;
+            });
+
+            updated.sort((a, b) => b.calculatedRpi - a.calculatedRpi);
+            updated.forEach((item, idx) => { item.rank = idx + 1; });
+            return updated;
+          });
+        }
       } catch (e) {
-        console.warn('Supabase camps hydration error:', e);
+        console.warn('Supabase hydration error:', e);
       }
     }
-    hydrateSupabaseCamps();
+    hydrateSupabaseData();
     return () => { isMounted = false; };
   }, []);
 
@@ -472,6 +546,13 @@ export default function App() {
       const topWard = habitations.find(h => h.status === 'CRITICAL' || h.zone === 'RED') || habitations[0];
       const evacCount = kpiData?.totalAtRisk || 858;
 
+      logDispatchAudit({
+        orderRef: 'DDMA/CHM/2026-EVAC',
+        wardName: topWard?.name || 'Sector 04 High-Risk Habitations',
+        evacCount: evacCount,
+        metadata: { rainfall, isRoadBlocked }
+      });
+
       const res = await fetch('http://localhost:8000/api/dispatch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -498,55 +579,48 @@ export default function App() {
   };
 
   const handleInspectSector = (sector) => {
+    if (!sector) return;
     const matchedTopo = TOPOGRAPHIC_SECTORS.find(s => 
       s.id === sector.id || 
       s.ward_no === sector.ward_no || 
       (s.name && sector.name && s.name.toLowerCase().includes(sector.name.toLowerCase().slice(0, 6)))
     );
 
-    const polygon = sector.polygon || matchedTopo?.polygon;
-    const coords = sector.coords || matchedTopo?.coords || (sector.lat && (sector.lon || sector.lng) ? [Number(sector.lat), Number(sector.lon || sector.lng)] : matchedTopo?.center);
+    const polygon = sector.polygon || sector.coordinates || matchedTopo?.polygon || matchedTopo?.coordinates;
+    const coords = sector.center || sector.coords || matchedTopo?.center || matchedTopo?.coords || (sector.lat && (sector.lon || sector.lng) ? [Number(sector.lat), Number(sector.lon || sector.lng)] : null);
 
     const enriched = {
       ...matchedTopo,
       ...sector,
       polygon: polygon,
+      coordinates: polygon,
       id: sector.id || matchedTopo?.id || `ward-${sector.ward_no || sector.numericId || Date.now()}`,
       coords: coords,
+      center: coords,
       lat: coords ? coords[0] : sector.lat,
       lon: coords ? coords[1] : (sector.lon || sector.lng),
       _ts: Date.now()
     };
 
     setSelectedWard(enriched);
-    setInspectSector(enriched);
+    if (coords) {
+      setPanTarget({ coords: coords, zoom: 16 });
+    }
   };
 
   const handleRecenter = () => {
-    setSelectedWard({
-      id: 'center-overview-' + Date.now(),
-      name: "Joshimath Town Overview",
-      lat: 30.5550,
-      lon: 79.5650,
-      coords: [30.5550, 79.5650],
-      polygon: [
-        [30.5615, 79.5540],
-        [30.5615, 79.5790],
-        [30.5480, 79.5790],
-        [30.5480, 79.5540]
-      ],
-      _ts: Date.now()
-    });
+    setSelectedWard(null);
+    setPanTarget(null);
   };
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-slate-50 flex flex-col font-sans text-slate-800 select-none">
+    <div className="min-h-screen w-full bg-slate-50 flex flex-col font-sans text-slate-800 select-none">
 
-      <header className="h-16 bg-[#f8fafc] border-b border-slate-300 px-5 flex items-center justify-between shadow-xs z-30 select-none">
+      <header className="sticky top-0 z-50 w-full bg-slate-50 border-b border-slate-200 shadow-sm px-5 py-2.5 flex items-center justify-between text-slate-900 select-none">
 
         <div className="flex items-center gap-3.5">
 
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-b from-slate-900 to-[#0b192c] border border-amber-500/40 p-1 flex items-center justify-center shadow-sm flex-shrink-0 relative overflow-hidden">
+          <div className="w-10 h-10 rounded-lg bg-slate-900 border border-slate-800 p-1 flex items-center justify-center shadow-xs flex-shrink-0 relative overflow-hidden">
             <svg viewBox="0 0 100 100" className="w-full h-full">
 
               <polygon points="50,4 92,26 92,74 50,96 8,74 8,26" fill="none" stroke="#f59e0b" strokeWidth="3" opacity="0.65" strokeDasharray="6 3"/>
@@ -562,12 +636,12 @@ export default function App() {
           <div>
             <div className="flex items-center gap-2">
               <span className="text-lg font-black tracking-wider text-slate-900 font-sans">AABHAS</span>
-              <span className="text-xs font-bold text-amber-700 font-sans">(आभास)</span>
-              <span className="text-[10px] font-mono font-bold bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.2 rounded">
+              <span className="text-xs font-bold text-amber-600 font-sans">(आभास)</span>
+              <span className="text-[10px] font-mono font-bold bg-amber-100 text-amber-800 border border-amber-300 px-1.5 py-0.2 rounded">
                 SIH26191
               </span>
             </div>
-            <p className="text-[10px] font-semibold text-slate-600 leading-tight">
+            <p className="text-xs font-medium text-slate-600 leading-tight">
               Adaptive Analytics for Base Hazard Assessment &amp; Subsidence — Chamoli District Operations
             </p>
           </div>
@@ -575,10 +649,10 @@ export default function App() {
 
         <div className="flex items-center gap-3.5">
           <div className="text-right hidden sm:block">
-            <div className="text-[11px] font-bold text-slate-900 leading-tight">
+            <div className="text-[11px] font-bold text-slate-800 leading-tight">
               Ministry of Home Affairs (MHA) | Govt of India
             </div>
-            <div className="text-[10px] font-medium text-slate-600 leading-tight mt-0.5">
+            <div className="text-[10px] font-medium text-slate-500 leading-tight mt-0.5">
               Disaster Management Division (NDRF Operations Wing)
             </div>
           </div>
@@ -586,7 +660,7 @@ export default function App() {
           <img 
             src="https://upload.wikimedia.org/wikipedia/commons/5/55/Emblem_of_India.svg" 
             alt="State Emblem of India" 
-            className="h-12 w-auto object-contain flex-shrink-0" 
+            className="h-12 w-auto object-contain flex-shrink-0 opacity-100" 
           />
 
           <div className="h-8 w-px bg-slate-300 mx-0.5 hidden sm:block"></div>
@@ -594,7 +668,7 @@ export default function App() {
           <img 
             src="https://upload.wikimedia.org/wikipedia/en/4/41/Flag_of_India.svg" 
             alt="National Flag of India" 
-            className="h-7 w-auto object-contain rounded-xs border border-slate-300 shadow-2xs flex-shrink-0" 
+            className="h-7 w-auto object-contain rounded-xs border border-slate-300 shadow-2xs flex-shrink-0 opacity-100" 
           />
         </div>
       </header>
@@ -602,31 +676,27 @@ export default function App() {
       <div className="bg-slate-100 border-b border-slate-300 px-5 py-2 flex flex-col md:flex-row md:items-center justify-between gap-3 flex-shrink-0 text-xs shadow-xs z-20">
 
         <div className="flex flex-wrap items-center gap-2.5">
-
           <span className="inline-flex items-center px-2.5 py-1 rounded bg-blue-900 text-white font-bold tracking-wide text-[11px] shadow-2xs">
             <MapPin className="w-3 h-3 mr-1 text-amber-400" />
             SECTOR: CHAMOLI DISTRICT GRID
           </span>
 
-          <span className="hidden xl:inline text-[11px] text-slate-600 font-mono-data font-semibold">
-            (CHAMOLI, UK | 30.33° N, 79.40° E)
-          </span>
-
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-white border border-slate-300 text-[10px] font-mono font-bold text-slate-700 shadow-2xs">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span>ISRO/DInSAR DOWNLINK: ACTIVE (100%)</span>
+          <div className="flex items-center gap-2.5 text-xs text-slate-600">
+            <span className="font-semibold text-slate-800">Chamoli Sector (30.33° N, 79.40° E)</span>
+            <span>•</span>
+            <span className="inline-flex items-center gap-1 text-emerald-700 font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              ISRO DInSAR Feed Active
+            </span>
+            <span>•</span>
+            <span className="text-amber-800 font-medium bg-amber-50 px-2 py-0.5 rounded border border-amber-200 font-mono-data">
+              Subsidence: {telemetry.shear_strain_mm_day || (0.8 + (rainfall / 180.0) * 3.4).toFixed(1)} mm/day
+            </span>
           </div>
 
           <span className={hazardPill.className} id="hazard-pill">
             {hazardPill.text}
           </span>
-
-          <div className="hidden 2xl:flex items-center gap-2 font-mono-data text-[11px] text-slate-700 bg-white border border-slate-200 px-2.5 py-1 rounded">
-            <span className="text-slate-500 font-medium">Real-time Telemetry:</span>
-            <span className="font-bold text-amber-700">Subsidence: {telemetry.shear_strain_mm_day || (0.8 + (rainfall / 180.0) * 3.4).toFixed(1)} mm/day</span>
-            <span className="text-slate-300">•</span>
-            <span className="font-bold text-slate-800">Pore Pressure: {telemetry.pore_pressure_kpa || (14.5 + (rainfall / 180.0) * 36.2).toFixed(1)} kPa</span>
-          </div>
         </div>
 
         <div className="flex items-center gap-3 flex-shrink-0">
@@ -687,12 +757,11 @@ export default function App() {
 
           <button
             onClick={() => setIsAdvisorOpen(!isAdvisorOpen)}
-            className="bg-[#0b192c] hover:bg-[#1e3e62] text-white px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-2 transition-colors shadow-xs cursor-pointer"
-            title="Open EOC Tactical Advisory Console"
+            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded border border-slate-300 transition-colors cursor-pointer"
+            id="btn-sop-guidelines"
+            title="Open SOP Guidelines & Decision Support"
           >
-            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>Tactical Command Advisor</span>
+            SOP Guidelines
           </button>
         </div>
       </div>
@@ -728,13 +797,13 @@ export default function App() {
               <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono-data font-bold animate-pulse ${
                 activeView === 'fleet' ? 'bg-rose-900/60 text-white border border-rose-300' : 'bg-rose-50 border border-rose-300 text-rose-700'
               }`}>
-                12 Active | 6 Halted
+                5 Active | 3 Rerouted
               </span>
             ) : (
               <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono-data font-semibold ${
                 activeView === 'fleet' ? 'bg-blue-700 text-blue-100' : 'bg-slate-100 border border-slate-200 text-slate-700'
               }`}>
-                18 Veh
+                8 Units (5 Active | 3 Staged)
               </span>
             )}
           </button>
@@ -753,15 +822,12 @@ export default function App() {
             <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono-data font-semibold ${
               activeView === 'camps' ? 'bg-blue-700 text-blue-100' : 'bg-blue-50 border border-blue-200 text-blue-800'
             }`}>
-              5 Camps (14,550 Beds)
+              4 Camps (7,550 Beds)
             </span>
           </button>
 
           <button
-            onClick={() => {
-              setActiveView('broadcast');
-              setIsBroadcastOpen(true);
-            }}
+            onClick={() => setActiveView('broadcast')}
             className={`px-3.5 py-1.5 rounded-lg flex items-center gap-2 text-xs transition-all cursor-pointer ${
               activeView === 'broadcast'
                 ? 'bg-blue-600 text-white shadow-sm font-bold'
@@ -782,12 +848,11 @@ export default function App() {
         <div className="flex items-center space-x-2 flex-shrink-0">
           <button
             onClick={() => setIsEvacModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 active:bg-red-800 text-white text-xs font-bold transition-all shadow border border-red-700 uppercase tracking-wider cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-red-700 hover:bg-red-800 text-white rounded text-xs font-semibold shadow-sm transition-colors cursor-pointer"
             id="btn-initiate-evac-directive"
           >
-            <Siren className="w-4 h-4 text-white" />
-            <span className="hidden md:inline">INITIATE EVACUATION DIRECTIVE</span>
-            <span className="md:hidden">EVACUATE</span>
+            <AlertTriangle className="w-3.5 h-3.5" />
+            <span>Issue Evacuation Order</span>
           </button>
 
           <button
@@ -810,107 +875,101 @@ export default function App() {
       )}
 
       {activeView === 'gis' && (
-        <main className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+        <main className="flex-1 flex flex-col md:flex-row relative w-full">
 
-          <aside className="w-full md:w-[320px] bg-white border-r border-slate-200 p-3.5 overflow-y-auto flex-shrink-0 flex flex-col gap-3.5 shadow-xs" id="panel-left">
-            <div className="border-b border-slate-200 pb-2">
+          <aside className="w-full md:w-[320px] bg-white border-r border-slate-200 p-3 flex-shrink-0 flex flex-col gap-2 shadow-xs" id="panel-left">
+            <div className="border-b border-slate-200 pb-1.5">
               <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
                 <Activity className="w-4 h-4 text-blue-900" />
                 TERRAIN &amp; STRUCTURAL LOAD ANALYSIS
               </h2>
-              <p className="text-[11px] text-slate-500 mt-0.5">Automated Multi-Hazard Geotechnical Ingress</p>
+              <p className="text-[11px] text-slate-500 mt-0.5">Real-time Slope &amp; Terrain Monitoring</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-2.5">
-
-              <div className="bg-slate-50/70 p-2.5 rounded-lg border border-slate-200">
+            <div className="grid grid-cols-2 gap-2">
+              <div className="bg-slate-50/70 p-2 rounded-lg border border-slate-200">
                 <div className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Monitored Sectors</div>
-                <div className="text-xl font-black text-slate-900 font-mono-data mt-0.5">{habitations.length} Zones</div>
-                <div className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1 mt-1">
-                  <CheckCircle2 className="w-3 h-3" /> 12,480 Verified Citizens
+                <div className="text-lg font-black text-slate-900 font-mono-data mt-0.5">{habitations.length} Zones</div>
+                <div className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1 mt-0.5">
+                  <CheckCircle2 className="w-3 h-3" /> 12,480 Verified
                 </div>
               </div>
 
-              <div className="bg-red-50/50 p-2.5 rounded-lg border border-red-200">
+              <div className="bg-red-50/50 p-2 rounded-lg border border-red-200">
                 <div className="text-[10px] uppercase font-bold text-red-700 tracking-wider">Red Zones Declared</div>
-                <div className="text-xl font-black text-red-600 font-mono-data mt-0.5" id="kpi-red-zones">
+                <div className="text-lg font-black text-red-600 font-mono-data mt-0.5" id="kpi-red-zones">
                   {kpiData?.redZones || "3 Sectors"}
                 </div>
-                <div className="text-[10px] text-red-600 font-semibold flex items-center gap-1 mt-1">
-                  <AlertTriangle className="w-3 h-3" /> High Subsidence Rate
+                <div className="text-[10px] text-red-600 font-semibold flex items-center gap-1 mt-0.5">
+                  <AlertTriangle className="w-3 h-3" /> High Risk
                 </div>
               </div>
 
-              <div className="bg-slate-50/70 p-2.5 rounded-lg border border-slate-200">
+              <div className="bg-slate-50/70 p-2 rounded-lg border border-slate-200">
                 <div className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">At-Risk Citizens</div>
-                <div className="text-xl font-black text-slate-900 font-mono-data mt-0.5" id="kpi-at-risk-pop">
+                <div className="text-lg font-black text-slate-900 font-mono-data mt-0.5" id="kpi-at-risk-pop">
                   {kpiData?.atRiskPopulation || "9,680"}
                 </div>
-                <div className="text-[10px] text-slate-500 font-medium mt-1">
+                <div className="text-[10px] text-slate-500 font-medium mt-0.5">
                   Red &amp; Amber (of 12,480)
                 </div>
               </div>
 
-              <div className="bg-slate-50/70 p-2.5 rounded-lg border border-slate-200">
+              <div className="bg-slate-50/70 p-2 rounded-lg border border-slate-200">
                 <div className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Peak Overburden</div>
-                <div className="text-xl font-black text-amber-700 font-mono-data mt-0.5" id="kpi-max-overburden">
+                <div className="text-lg font-black text-amber-700 font-mono-data mt-0.5" id="kpi-max-overburden">
                   {telemetry.peak_overburden ? `${telemetry.peak_overburden}x` : (kpiData?.maxOverburden || "2.10x")}
                 </div>
-                <div className="text-[10px] text-amber-700 font-semibold flex items-center gap-1 mt-1">
-                  <ShieldAlert className="w-3 h-3" /> Exceeds Safety Margin
+                <div className="text-[10px] text-amber-700 font-semibold flex items-center gap-1 mt-0.5">
+                  <ShieldAlert className="w-3 h-3" /> Exceeds Margin
                 </div>
               </div>
             </div>
 
-            <div className="bg-slate-900 text-white p-3 rounded-lg border border-slate-800 flex flex-col gap-2.5 shadow-sm" id="card-xai">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
-                <span className="text-xs font-bold text-amber-400 flex items-center gap-1.5 uppercase tracking-wider">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  Factor Attribution
-                </span>
-                <span className="text-[9px] font-mono-data bg-blue-900/80 text-blue-200 border border-blue-600 px-1.5 py-0.2 rounded">
-                  SHAP / Limit-Equilibrium
-                </span>
+            <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs flex flex-col gap-1.5 shadow-2xs" id="card-xai">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-1">
+                <div className="text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-0">
+                  Key Risk Drivers
+                </div>
               </div>
-              <p className="text-[10px] text-slate-300 leading-tight">
-                Relative feature contribution weights driving the dynamic Relocation Priority Index (RPI):
+              <p className="text-[10px] text-slate-500 leading-tight">
+                Relative geotechnical contribution weights driving the Relocation Priority Index (RPI):
               </p>
 
-              <div className="space-y-2 text-[11px] font-mono-data">
-
+              <div className="space-y-1.5 text-[11px]">
                 <div>
-                  <div className="flex justify-between text-slate-300 mb-0.5">
-                    <span>Slope Shear Stress:</span>
-                    <span className="font-bold text-amber-400">{xaiAttribution.slope_shear_stress_pct || 38}%</span>
+                  <div className="flex justify-between text-slate-700 mb-0.5">
+                    <span className="text-slate-800 font-semibold">Slope Shear Stress:</span>
+                    <span className="font-bold text-slate-900">{xaiAttribution.slope_shear_stress_pct || 38}%</span>
                   </div>
-                  <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                  <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
                     <div className="bg-amber-500 h-full rounded-full transition-all duration-300" style={{ width: `${xaiAttribution.slope_shear_stress_pct || 38}%` }}></div>
                   </div>
                 </div>
 
                 <div>
-                  <div className="flex justify-between text-slate-300 mb-0.5">
-                    <span>Dynamic Pore Pressure:</span>
-                    <span className="font-bold text-sky-400">{xaiAttribution.dynamic_pore_pressure_pct || 34}%</span>
+                  <div className="flex justify-between text-slate-700 mb-0.5">
+                    <span className="text-slate-800 font-semibold">Dynamic Pore Pressure:</span>
+                    <span className="font-bold text-slate-900">{xaiAttribution.dynamic_pore_pressure_pct || 34}%</span>
                   </div>
-                  <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                    <div className="bg-sky-500 h-full rounded-full transition-all duration-300" style={{ width: `${xaiAttribution.dynamic_pore_pressure_pct || 34}%` }}></div>
+                  <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                    <div className="bg-blue-600 h-full rounded-full transition-all duration-300" style={{ width: `${xaiAttribution.dynamic_pore_pressure_pct || 34}%` }}></div>
                   </div>
                 </div>
 
                 <div>
-                  <div className="flex justify-between text-slate-300 mb-0.5">
-                    <span>InSAR Subsidence Velocity:</span>
-                    <span className="font-bold text-rose-400">{xaiAttribution.insar_subsidence_velocity_pct || 28}%</span>
+                  <div className="flex justify-between text-slate-700 mb-0.5">
+                    <span className="text-slate-800 font-semibold">InSAR Subsidence Velocity:</span>
+                    <span className="font-bold text-slate-900">{xaiAttribution.insar_subsidence_velocity_pct || 28}%</span>
                   </div>
-                  <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                  <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
                     <div className="bg-rose-500 h-full rounded-full transition-all duration-300" style={{ width: `${xaiAttribution.insar_subsidence_velocity_pct || 28}%` }}></div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-slate-50/60 p-3 rounded-lg border border-slate-200 flex flex-col gap-2">
+            <div className="bg-slate-50/60 p-2.5 rounded-lg border border-slate-200 flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                   <Gauge className="w-4 h-4 text-blue-900" />
@@ -920,11 +979,8 @@ export default function App() {
                   {telemetry.peak_overburden ? `${telemetry.peak_overburden}x` : `${avgOverburden}x`} Threshold
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500 leading-tight">
-                Safe Structural Threshold vs Existing Built Density under current precipitation stress factor.
-              </p>
 
-              <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden p-0.5 border border-slate-300">
+              <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden p-0.5 border border-slate-300 mt-0.5">
                 <div 
                   className={`h-full rounded-full transition-all duration-300 ${
                     (telemetry.peak_overburden || Number(avgOverburden)) < 1.3 ? 'bg-emerald-500' : ((telemetry.peak_overburden || Number(avgOverburden)) <= 1.6 ? 'bg-amber-500' : 'bg-red-600')
@@ -938,29 +994,6 @@ export default function App() {
                 <span className="font-bold text-slate-800">1.0x (Limit)</span>
                 <span>2.0x (Critical)</span>
               </div>
-
-              <div className="mt-2 pt-2 border-t border-slate-200 grid grid-cols-2 gap-1.5 text-[11px]">
-                <div className="text-slate-500">Pore Pressure:</div>
-                <div className="font-mono-data font-bold text-slate-800 text-right" id="pore-pressure-val">
-                  {telemetry.pore_pressure_kpa !== undefined ? `${telemetry.pore_pressure_kpa} kPa` : `${(14.5 + (rainfall / 180.0) * 36.2).toFixed(1)} kPa`}
-                </div>
-                <div className="text-slate-500">Shear Strain:</div>
-                <div className="font-mono-data font-bold text-amber-700 text-right" id="shear-strain-val">
-                  {telemetry.shear_strain_mm_day !== undefined ? `${telemetry.shear_strain_mm_day} mm/day` : `${(0.8 + (rainfall / 180.0) * 3.4).toFixed(1)} mm/day`}
-                </div>
-                <div className="text-slate-500">Aquifer Saturation:</div>
-                <div className="font-mono-data font-bold text-slate-800 text-right" id="aquifer-val">
-                  {telemetry.aquifer_saturation_pct !== undefined ? `${telemetry.aquifer_saturation_pct}%` : `${Math.min(99, Math.round(22 + (rainfall / 180.0) * 73))}%`}
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-blue-50/70 border border-blue-200 rounded-lg p-2.5 text-[11px] text-blue-900 leading-snug">
-              <div className="font-bold flex items-center gap-1.5 mb-1 text-blue-950">
-                <Info className="w-3.5 h-3.5 text-blue-700" />
-                NDRF SOPS ACTIVE (CODE 42-A)
-              </div>
-              Pre-position 3x Quick Response Teams at Sector Helipad. Maintain continuous satellite InSAR telemetry feed with ISRO-NRSC.
             </div>
           </aside>
 
@@ -971,6 +1004,7 @@ export default function App() {
                 habitations={habitations} 
                 selectedWard={selectedWard} 
                 onSelectWard={(ward) => handleInspectSector(ward)} 
+                panTarget={panTarget}
                 rainfall={rainfall}
                 camps={camps}
                 evacuationCorridors={evacuationCorridors}
@@ -978,10 +1012,10 @@ export default function App() {
                 isRoadBlocked={isRoadBlocked}
               />
 
-              <div className="absolute top-3 left-3 z-[1000] bg-slate-900/90 text-white backdrop-blur-xs border border-slate-700 px-3 py-1.5 rounded-md shadow-md flex items-center space-x-2.5 pointer-events-auto">
-                <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-                <span className="text-xs font-bold text-slate-100">LIVE SATELLITE GEODETIC GRID</span>
-                <span className="text-[10px] text-amber-400 font-mono-data border-l border-slate-700 pl-2">ESRI WORLD IMAGERY HD</span>
+              <div className="absolute top-3 left-3 z-[1000] pointer-events-auto">
+                <span className="bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded shadow-sm text-[11px] font-medium text-slate-700 border border-slate-200">
+                  ESRI Satellite View • Chamoli Sector
+                </span>
               </div>
 
               <div className="absolute top-3 right-3 z-[1000] flex items-center space-x-1.5 pointer-events-auto">
@@ -1020,13 +1054,9 @@ export default function App() {
                 </div>
               </div>
             </div>
-
-            <div className="p-3.5 bg-slate-100 border-t border-slate-200">
-              <EvacuationEngine rainfall={rainfall} onOpenLogisticsModal={() => setIsLogisticsModalOpen(true)} />
-            </div>
           </section>
 
-          <aside className="w-full md:w-[380px] bg-white border-l border-slate-200 p-3.5 overflow-y-auto flex-shrink-0 flex flex-col shadow-xs" id="panel-right">
+          <aside className="w-full md:w-[380px] bg-white border-l border-slate-200 p-3 flex-shrink-0 flex flex-col shadow-xs" id="panel-right">
             <div className="border-b border-slate-200 pb-2 mb-2 flex items-center justify-between">
               <div>
                 <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
@@ -1040,7 +1070,7 @@ export default function App() {
               </span>
             </div>
 
-            <div className="space-y-2.5 flex-1" id="triage-list">
+            <div className="space-y-2 flex-1" id="triage-list">
               {habitations.map((sector, index) => {
                 const isRed = sector.status === 'CRITICAL' || sector.zone === 'RED' || sector.hazard_tier === 'CRITICAL_RED';
                 const isOrange = sector.status === 'MONITOR' || sector.zone === 'ORANGE' || sector.hazard_tier === 'WARNING_AMBER';
@@ -1049,7 +1079,7 @@ export default function App() {
                 const sectorUniqueKey = sector.id || `sector-${sector.ward_no || sector.numericId || index}`;
 
                 return (
-                  <div key={sectorUniqueKey} className={`p-3 rounded-lg border ${borderColor} shadow-xs hover:shadow transition-all`}>
+                  <div key={sectorUniqueKey} className={`p-2.5 rounded-lg border ${borderColor} shadow-xs hover:shadow transition-all`}>
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center space-x-2">
                         <span className="w-5 h-5 flex items-center justify-center rounded-full bg-slate-900 text-white text-[10px] font-mono-data font-bold">
@@ -1070,31 +1100,29 @@ export default function App() {
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-1 mt-2 pt-2 border-t border-slate-100 text-[10px] font-mono-data">
-                      <div>
-                        <span className="text-slate-400 block text-[9px]">SLOPE</span>
-                        <span className="font-bold text-slate-700">{sector.slope}°</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-400 block text-[9px]">OVERBURDEN</span>
-                        <span className={`font-bold ${(sector.overburden || sector.overburden_ratio) > 1.0 ? 'text-red-600' : 'text-slate-700'}`}>{sector.overburden || sector.overburden_ratio}x</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-400 block text-[9px]">EVAC CUTOFF</span>
-                        <span className="font-bold text-amber-700">{sector.evacCutoffRisk ?? Math.round((sector.cutoff_risk || 0.5) * 100)}%</span>
-                      </div>
+                    <div className="flex items-center justify-between mt-1.5 pt-1.5 border-t border-slate-100 text-[10px] font-mono-data text-slate-600">
+                      <span>Slope: <strong className="text-slate-800">{sector.slope}°</strong></span>
+                      <span>Overburden: <strong className={(sector.overburden || sector.overburden_ratio) > 1.0 ? 'text-red-600' : 'text-slate-800'}>{sector.overburden || sector.overburden_ratio}x</strong></span>
+                      <span>Cutoff Risk: <strong className="text-amber-700">{sector.evacCutoffRisk ?? Math.round((sector.cutoff_risk || 0.5) * 100)}%</strong></span>
                     </div>
 
-                    <div className="mt-2 pt-1.5 flex items-center justify-between border-t border-slate-100">
-                      <span className="text-[10px] text-slate-500 truncate max-w-[180px]" title={sector.shelter || sector.evac_hub}>
-                        <Shield className="w-3 h-3 inline text-slate-400 mr-1" />
-                        {sector.shelter || sector.evac_hub || 'Designated Base'}
+                    <div className="mt-1.5 pt-1.5 flex items-center justify-between border-t border-slate-100">
+                      <span className="text-[10px] text-slate-600 truncate max-w-[210px]">
+                        <span className="font-semibold text-slate-700">Relief Hub:</span> {
+                          sector.id === 'sec-sunil' || sector.name?.includes('Sunil') || sector.ward_no === 'Ward-04'
+                            ? 'Military Cantt Spur'
+                            : sector.id === 'sec-helang' || sector.name?.includes('Helang')
+                            ? (isRoadBlocked ? 'Gopeshwar Stadium (Diverted)' : 'Pipalkoti Relief Center')
+                            : sector.id === 'sec-karnaprayag' || sector.name?.includes('Karnaprayag')
+                            ? 'Gauchar Airstrip Hub'
+                            : 'Gopeshwar Stadium'
+                        }
                       </span>
                       <button
                         onClick={() => handleInspectSector(sector)}
-                        className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-xs font-mono text-slate-200 border border-slate-600 rounded flex items-center gap-1 transition-colors"
+                        className="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-medium border border-slate-300 rounded flex items-center gap-1 transition-colors cursor-pointer"
                       >
-                        Inspect ↗
+                        Inspect
                       </button>
                     </div>
                   </div>
@@ -1129,7 +1157,6 @@ export default function App() {
         <BroadcastView 
           habitations={habitations} 
           rainfall={rainfall} 
-          onOpenBroadcastModal={() => setIsBroadcastOpen(true)}
           onTriggerDispatch={() => {
             setDispatchToastMsg('OFFICIAL CAP BROADCAST DISPATCHED: Telemetry and SMS queues triggered across 4 BTS towers.');
             setShowDispatchToast(true);
@@ -1145,26 +1172,17 @@ export default function App() {
         id="advisor-drawer"
       >
 
-        <div className="bg-slate-900 text-white p-3.5 flex items-center justify-between border-b border-slate-800">
-          <div className="flex items-center space-x-2.5">
-            <div className="p-1.5 rounded bg-blue-800 text-amber-400">
-              <Bot className="w-4 h-4" />
+        <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-slate-200">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-800 font-bold text-xs flex items-center justify-center border border-blue-200">
+              NDRF
             </div>
             <div>
-              <div className="text-xs font-bold flex items-center gap-1.5">
-                <span>NDRF Tactical Decision Advisor</span>
-                <span className="text-[9px] bg-emerald-900 text-emerald-300 px-1.5 py-0.2 rounded font-mono-data">v2.4-Gov</span>
-              </div>
-              <div className="text-[10px] text-slate-400 font-mono-data">NDMA-2019 Geotechnical Engine Active</div>
+              <h3 className="text-sm font-bold text-slate-900 leading-tight">NDRF Assistor</h3>
+              <p className="text-[11px] text-slate-500">Field Decision Support • Chamoli Sector</p>
             </div>
           </div>
-          <button 
-            onClick={() => setIsAdvisorOpen(false)}
-            className="text-slate-400 hover:text-white p-1 rounded cursor-pointer" 
-            id="btn-close-advisor"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <button onClick={() => setIsAdvisorOpen(false)} className="text-slate-400 hover:text-slate-600 p-1 text-sm font-bold cursor-pointer" id="btn-close-advisor">✕</button>
         </div>
 
         <div className="p-3 bg-slate-50 border-b border-slate-200 flex flex-wrap gap-1.5">
@@ -1276,14 +1294,6 @@ export default function App() {
           setTimeout(() => setShowDispatchToast(false), 5000);
         }}
       />
-
-      {inspectSector && (
-        <GeotechnicalModal
-          sector={inspectSector}
-          rainfall={rainfall}
-          onClose={() => setInspectSector(null)}
-        />
-      )}
 
       <div className="hidden" id="print-section">
         <div style={{ borderBottom: '2px solid #0f172a', paddingBottom: '12px', marginBottom: '16px' }}>

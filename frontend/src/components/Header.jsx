@@ -64,7 +64,7 @@ export default function Header({
   const badge = getBadgeStyle();
 
   return (
-    <header className="bg-zinc-950 border-b border-zinc-800/80 select-none z-30 relative shadow-2xl flex-shrink-0">
+    <header className="sticky top-0 z-50 bg-zinc-950 border-b border-zinc-800/80 select-none shadow-2xl flex-shrink-0">
 
       <div className="flex flex-wrap items-center justify-between px-4 py-2.5 gap-3 border-b border-zinc-900 bg-zinc-950/90">
 

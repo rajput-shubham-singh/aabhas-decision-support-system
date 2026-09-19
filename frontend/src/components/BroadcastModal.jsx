@@ -152,7 +152,7 @@ export default function BroadcastModal({
         })
       });
 
-      setToastMsg("CAP-v1.2 Cellular Alert Broadcast to Sector (2,450 Mobile Terminals Paged)");
+      setToastMsg("Official Alert Broadcast dispatched across selected sectors (2,450 mobile devices paged).");
       if (onTriggerDispatch) {
         onTriggerDispatch();
       }
@@ -161,7 +161,7 @@ export default function BroadcastModal({
         onClose();
       }, 1500);
     } catch (e) {
-      setToastMsg("CAP-v1.2 Cellular Alert Broadcast to Sector (2,450 Mobile Terminals Paged)");
+      setToastMsg("Official Alert Broadcast dispatched across selected sectors (2,450 mobile devices paged).");
       if (onTriggerDispatch) {
         onTriggerDispatch();
       }
@@ -176,7 +176,7 @@ export default function BroadcastModal({
 
   const handleSendTest = () => {
     setTestSent(true);
-    setToastMsg("📡 STATUTORY VERIFICATION DISPATCHED: Handshake confirmed across 18 SDRF & QRT Tactical Nodes.");
+    setToastMsg("Statutory test verification confirmed across 18 SDRF and QRT nodes.");
     setTimeout(() => {
       setTestSent(false);
       setToastMsg(null);
@@ -185,67 +185,55 @@ export default function BroadcastModal({
 
   return (
     <div 
-      className="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto animate-in fade-in duration-150"
       id="broadcast-modal-backdrop"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div className="bg-white rounded-xl border border-slate-300 shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-        <div className="bg-slate-900 text-white px-5 py-3.5 flex items-center justify-between border-b border-slate-800 flex-shrink-0">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-lg bg-amber-500 text-slate-950 shadow-xs">
-              <Radio className="w-5 h-5 animate-pulse" />
-            </div>
+        <div className="bg-white border-b border-slate-200 px-6 py-4 flex-shrink-0">
+          <div className="flex items-center justify-between">
             <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-xs sm:text-sm font-black tracking-wider uppercase text-white font-mono-data">
-                  COMMON ALERTING PROTOCOL (CAP) • CITIZEN DISASTER BROADCAST GATEWAY
-                </h2>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 mt-1">
-                <span className="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-700/80 px-2 py-0.5 rounded font-mono-data font-bold">
-                  BTS TOWERS ACTIVE: 14/14 CHINESE-BORDER QUADRANT
-                </span>
-                <span className="text-[10px] text-slate-400 font-mono-data hidden sm:inline">
-                  NDMIS &amp; C-DOT Cell Broadcast Engine
-                </span>
-              </div>
+              <h3 className="text-base font-bold text-slate-900">
+                Common Alerting Protocol (CAP) — Public Broadcast Gateway
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                C-DOT Disaster Alert System &bull; Chamoli District Administration
+              </p>
             </div>
+            <button 
+              onClick={onClose} 
+              className="text-slate-400 hover:text-slate-600 text-lg font-bold p-1 cursor-pointer transition-colors"
+              title="Close Dialog"
+            >
+              ✕
+            </button>
           </div>
-
-          <button
-            onClick={onClose}
-            className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
-            id="modal-broadcast-close-x"
-            aria-label="Close broadcast modal"
-          >
-            <X className="w-5 h-5" />
-          </button>
         </div>
 
         {toastMsg && (
-          <div className="bg-slate-900 text-white border-b border-amber-500 px-4 py-2.5 text-xs font-semibold flex items-center justify-between animate-in fade-in">
+          <div className="bg-blue-50 text-blue-900 border-b border-blue-200 px-5 py-2.5 text-xs font-semibold flex items-center justify-between animate-in fade-in">
             <div className="flex items-center gap-2">
-              <Signal className="w-4 h-4 text-emerald-400 animate-pulse" />
+              <Signal className="w-4 h-4 text-blue-700 animate-pulse" />
               <span>{toastMsg}</span>
             </div>
-            <button onClick={() => setToastMsg(null)} className="text-slate-400 hover:text-white text-xs">✕</button>
+            <button onClick={() => setToastMsg(null)} className="text-blue-500 hover:text-blue-800 text-xs">✕</button>
           </div>
         )}
 
-        <div className="p-4 sm:p-6 overflow-y-auto space-y-4 bg-slate-50/50">
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-4 bg-slate-50/50 flex-1">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-xs">
               <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center justify-between">
                 <span>GEOFENCED DEVICES</span>
                 <Smartphone className="w-3.5 h-3.5 text-blue-600" />
               </div>
-              <div className="text-xl font-black text-slate-900 font-mono-data mt-1">
+              <div className="text-xl font-bold text-slate-900 font-mono mt-1">
                 12,480 <span className="text-xs font-normal text-slate-500">SIMs</span>
               </div>
               <div className="text-[10px] text-emerald-700 font-semibold mt-0.5 flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3" /> Live Handshake Verified
+                <CheckCircle2 className="w-3 h-3" /> Live Verified
               </div>
             </div>
 
@@ -254,11 +242,11 @@ export default function BroadcastModal({
                 <span>DISPATCH LATENCY</span>
                 <Clock className="w-3.5 h-3.5 text-amber-600" />
               </div>
-              <div className="text-xl font-black text-slate-900 font-mono-data mt-1">
+              <div className="text-xl font-bold text-slate-900 font-mono mt-1">
                 &lt; 4.2 <span className="text-xs font-normal text-slate-500">Sec</span>
               </div>
               <div className="text-[10px] text-slate-500 mt-0.5">
-                Tier-1 Emergency Broadcast
+                Direct C-DOT Gateway
               </div>
             </div>
 
@@ -267,22 +255,22 @@ export default function BroadcastModal({
                 <span>TELECOM CARRIERS</span>
                 <TowerControl className="w-3.5 h-3.5 text-purple-600" />
               </div>
-              <div className="text-xs font-bold text-slate-800 mt-1 font-mono-data">
-                BSNL (6,120) &bull; JIO (4,200)
+              <div className="text-xs font-bold text-slate-800 mt-1">
+                BSNL &bull; Jio &bull; Airtel
               </div>
-              <div className="text-[10px] text-slate-500 font-mono-data mt-0.5">
-                AIRTEL (2,160) &bull; 100% Armed
+              <div className="text-[10px] text-slate-500 mt-0.5">
+                4 Active BTS Stations
               </div>
             </div>
 
             <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-xs">
               <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center justify-between">
                 <span>THREAT LEVEL</span>
-                <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded border font-mono-data ${threatStage.badgeClass}`}>
+                <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded border ${threatStage.badgeClass}`}>
                   {threatStage.stage}
                 </span>
               </div>
-              <div className={`text-xs font-black uppercase mt-1 truncate ${threatStage.color}`} title={threatStage.name}>
+              <div className={`text-xs font-bold uppercase mt-1 truncate ${threatStage.color}`} title={threatStage.name}>
                 {threatStage.name}
               </div>
               <div className="text-[10px] text-slate-500 mt-0.5">
@@ -348,7 +336,7 @@ export default function BroadcastModal({
                 value={customText}
                 onChange={(e) => setCustomText(e.target.value)}
                 rows={3}
-                className="w-full bg-slate-900 text-amber-300 font-mono text-xs p-3 rounded-lg border border-slate-800 focus:outline-hidden focus:ring-2 focus:ring-amber-400 shadow-inner leading-relaxed resize-none"
+                className="w-full bg-white text-slate-800 text-xs p-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-xs leading-relaxed resize-none"
                 id="broadcast-message-textarea"
               />
             </div>
@@ -379,7 +367,7 @@ export default function BroadcastModal({
                     >
                       <span className={`w-2 h-2 rounded-full ${
                         isSelected 
-                          ? (sec.tier === 'CRITICAL' ? 'bg-red-500 animate-ping' : 'bg-blue-600')
+                          ? (sec.tier === 'CRITICAL' ? 'bg-red-500' : 'bg-blue-600')
                           : 'bg-slate-300'
                       }`} />
                       <span>{sec.name}</span>
@@ -392,9 +380,9 @@ export default function BroadcastModal({
 
             <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-700">
               <div className="flex items-center gap-2">
-                <Flame className="w-4 h-4 text-red-600" />
+                <Radio className="w-4 h-4 text-blue-700" />
                 <span className="font-semibold text-slate-900">Multi-Channel Dissemination:</span>
-                <span>Cell Broadcast (C-DOT) + 14 High-Decibel Mechanical Sirens (520 Hz) + Ham Radio 145.500 MHz</span>
+                <span>Cell Broadcast (C-DOT) + Local Warning Sirens (6 Poles)</span>
               </div>
               <span className="text-emerald-700 font-bold text-[10px] font-mono flex items-center gap-1">
                 <Check className="w-3 h-3" /> ALL CHANNELS SYNCHRONIZED
@@ -403,14 +391,14 @@ export default function BroadcastModal({
           </div>
         </div>
 
-        <div className="bg-slate-900 px-5 py-3.5 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 flex-shrink-0">
+        <div className="bg-slate-50 px-6 py-3.5 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 flex-shrink-0">
           <div className="text-left">
-            <div className="text-[11px] text-slate-300 font-mono-data font-bold flex items-center gap-1.5">
-              <Lock className="w-3.5 h-3.5 text-amber-400" />
-              Digital Signature: <span className="text-amber-400">DM-CHAMOLI-CAP-SEC84</span>
+            <div className="text-[11px] text-slate-700 font-semibold flex items-center gap-1.5">
+              <Lock className="w-3.5 h-3.5 text-slate-500" />
+              Digital Authorization: <span className="font-mono text-slate-900">DM-CHAMOLI-CAP-SEC84</span>
             </div>
-            <div className="text-[10px] text-slate-400 font-mono-data mt-0.5">
-              256-bit SHA-2 Encryption Verified &bull; Official Statutory Civil Alert
+            <div className="text-[10px] text-slate-500 mt-0.5">
+              Statutory Civil Alert &bull; Disaster Management Division
             </div>
           </div>
 
@@ -418,27 +406,27 @@ export default function BroadcastModal({
             <button
               onClick={handleSendTest}
               disabled={testSent || isTransmitting}
-              className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 active:bg-slate-850 text-white text-xs font-bold rounded-lg transition-all border border-slate-700 flex items-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap"
+              className="px-3.5 py-2 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 text-xs font-semibold rounded border border-slate-300 shadow-xs transition-colors cursor-pointer whitespace-nowrap"
               id="btn-broadcast-test-alert"
             >
-              <span>📡 SDRF Verification Probe (18 Nodes)</span>
+              <span>Test Verification Handshake</span>
             </button>
 
             <button
               onClick={handleTransmitBroadcast}
               disabled={isTransmitting}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white text-xs font-black uppercase tracking-wider rounded-lg shadow-lg border border-red-500 flex items-center gap-2 cursor-pointer transition-all hover:shadow-red-900/30 whitespace-nowrap"
+              className="px-4 py-2 bg-red-700 hover:bg-red-800 active:bg-red-900 text-white text-xs font-semibold rounded shadow-sm flex items-center gap-2 cursor-pointer transition-colors whitespace-nowrap"
               id="btn-broadcast-transmit"
             >
               {isTransmitting ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin text-white" />
-                  <span>TRANSMITTING BROADCAST...</span>
+                  <span>Transmitting Alert...</span>
                 </>
               ) : (
                 <>
-                  <Radio className="w-4 h-4 text-white animate-pulse" />
-                  <span>📢 TRANSMIT EMERGENCY CELL BROADCAST</span>
+                  <Radio className="w-4 h-4 text-white" />
+                  <span>Send Emergency Cell Broadcast</span>
                 </>
               )}
             </button>

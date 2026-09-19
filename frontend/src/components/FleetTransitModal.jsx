@@ -6,275 +6,23 @@ import {
   AlertTriangle, 
   CheckCircle2, 
   Radio, 
-  Fuel, 
   Users, 
   Clock, 
   Route, 
-  Send,
-  Navigation,
-  FileText,
-  RefreshCw,
-  MapPin,
-  Compass,
-  Zap,
-  Activity
+  Send, 
+  Navigation, 
+  FileText, 
+  RefreshCw, 
+  MapPin, 
+  Compass, 
+  Zap, 
+  Activity, 
+  Play, 
+  Square, 
+  ArrowRight 
 } from 'lucide-react';
 import { supabase, fetchLiveTransitFleet, updateFleetStatus } from '../lib/supabaseClient.js';
-
-const INITIAL_CONVOY_MANIFEST = [
-  {
-    id: 'CONVOY-A1',
-    regNo: 'UTC-UK07-GA-4412',
-    model: 'Ashok Leyland 42-Str',
-    class: 'Heavy Transit Bus',
-    pickup: 'Joshimath Helipad Ground',
-    destination: 'Gopeshwar Stadium Mega-Hub',
-    capacity: 42,
-    pax: 40,
-    status: 'EN_ROUTE',
-    driver: 'Havildar R. S. Negi',
-    fuel: 94,
-    axis: 'NH-07 Upper Corridor'
-  },
-  {
-    id: 'CONVOY-A2',
-    regNo: 'UTC-UK07-GA-4418',
-    model: 'Ashok Leyland 42-Str',
-    class: 'Heavy Transit Bus',
-    pickup: 'Joshimath Lower Basti',
-    destination: 'Gopeshwar Stadium Mega-Hub',
-    capacity: 42,
-    pax: 42,
-    status: 'EN_ROUTE',
-    driver: 'Naik Surendra Rawat',
-    fuel: 88,
-    axis: 'NH-07 Upper Corridor'
-  },
-  {
-    id: 'CONVOY-A3',
-    regNo: 'UTC-UK07-GA-4425',
-    model: 'Tata Ultra 42-Str',
-    class: 'Heavy Transit Bus',
-    pickup: 'Marwari Central Chowk',
-    destination: 'Gopeshwar Stadium Mega-Hub',
-    capacity: 42,
-    pax: 38,
-    status: 'BOARDING',
-    driver: 'Subedar M. Joshi',
-    fuel: 92,
-    axis: 'NH-07 Upper Corridor'
-  },
-  {
-    id: 'CONVOY-A4',
-    regNo: 'UTC-UK07-GA-4431',
-    model: 'Ashok Leyland 42-Str',
-    class: 'Heavy Transit Bus',
-    pickup: 'Joshimath Helipad Ground',
-    destination: 'Gopeshwar Stadium Mega-Hub',
-    capacity: 42,
-    pax: 0,
-    status: 'STAGED',
-    driver: 'Constable Amit Chauhan',
-    fuel: 100,
-    axis: 'NH-07 Upper Corridor'
-  },
-  {
-    id: 'CONVOY-A5',
-    regNo: 'UTC-UK07-GA-4440',
-    model: 'Tata Ultra 42-Str',
-    class: 'Heavy Transit Bus',
-    pickup: 'Sunil Scarp Base',
-    destination: 'Gopeshwar Stadium Mega-Hub',
-    capacity: 42,
-    pax: 36,
-    status: 'EN_ROUTE',
-    driver: 'Havildar Deepesh Pundir',
-    fuel: 85,
-    axis: 'NH-07 Upper Corridor'
-  },
-  {
-    id: 'CONVOY-A6',
-    regNo: 'UTC-UK07-GA-4452',
-    model: 'Ashok Leyland 42-Str',
-    class: 'Heavy Transit Bus',
-    pickup: 'Joshimath Helipad Ground',
-    destination: 'Gopeshwar Stadium Mega-Hub',
-    capacity: 42,
-    pax: 0,
-    status: 'READY',
-    driver: 'Naik B. S. Danu',
-    fuel: 98,
-    axis: 'NH-07 Upper Corridor'
-  },
-  {
-    id: 'CONVOY-B1',
-    regNo: 'ITBP-UK07-TC-101',
-    model: 'ITBP 4x4 High-Axle Carrier',
-    class: '4x4 Troop Carrier',
-    pickup: 'Upper Sunil Shear Scarp',
-    destination: 'Military Cantt Spur',
-    capacity: 25,
-    pax: 25,
-    status: 'EN_ROUTE',
-    driver: 'Subedar Major K. Singh',
-    fuel: 96,
-    axis: 'High-Altitude Ridge'
-  },
-  {
-    id: 'CONVOY-B2',
-    regNo: 'ITBP-UK07-TC-104',
-    model: 'ITBP 4x4 High-Axle Carrier',
-    class: '4x4 Troop Carrier',
-    pickup: 'Singhdhar Main Rupture',
-    destination: 'Military Cantt Spur',
-    capacity: 25,
-    pax: 24,
-    status: 'EN_ROUTE',
-    driver: 'Havildar P. C. Bhatt',
-    fuel: 90,
-    axis: 'High-Altitude Ridge'
-  },
-  {
-    id: 'CONVOY-B3',
-    regNo: 'ITBP-UK07-TC-109',
-    model: 'ITBP 4x4 High-Axle Carrier',
-    class: '4x4 Troop Carrier',
-    pickup: 'Upper Sunil Scarp',
-    destination: 'Military Cantt Spur',
-    capacity: 25,
-    pax: 22,
-    status: 'BOARDING',
-    driver: 'Naik Arvind Thapa',
-    fuel: 93,
-    axis: 'High-Altitude Ridge'
-  },
-  {
-    id: 'CONVOY-B4',
-    regNo: 'ITBP-UK07-TC-115',
-    model: 'ITBP 4x4 High-Axle Carrier',
-    class: '4x4 Troop Carrier',
-    pickup: 'Manohar Bagh Ridge',
-    destination: 'Military Cantt Spur',
-    capacity: 25,
-    pax: 0,
-    status: 'READY',
-    driver: 'Constable Virendra Negi',
-    fuel: 99,
-    axis: 'High-Altitude Ridge'
-  },
-  {
-    id: 'CONVOY-B5',
-    regNo: 'ITBP-UK07-TC-122',
-    model: 'ITBP 4x4 High-Axle Carrier',
-    class: '4x4 Troop Carrier',
-    pickup: 'Ravigram Bypass Spur',
-    destination: 'Military Cantt Spur',
-    capacity: 25,
-    pax: 0,
-    status: 'READY',
-    driver: 'Havildar G. S. Rawat',
-    fuel: 95,
-    axis: 'High-Altitude Ridge'
-  },
-  {
-    id: 'CONVOY-C1',
-    regNo: 'UTC-UK07-LC-8801',
-    model: 'Volvo 9600 Multi-Axle (52-Str)',
-    class: 'Long Distance Evac Coach',
-    pickup: 'Joshimath Civil Bus Stand',
-    destination: 'Gauchar Airhead Staging',
-    capacity: 52,
-    pax: 52,
-    status: 'EN_ROUTE',
-    driver: 'Driver Master R. K. Sharma',
-    fuel: 91,
-    axis: 'NH-07 South Corridor'
-  },
-  {
-    id: 'CONVOY-C2',
-    regNo: 'UTC-UK07-LC-8809',
-    model: 'Volvo 9600 Multi-Axle (52-Str)',
-    class: 'Long Distance Evac Coach',
-    pickup: 'Marwari Central Chowk',
-    destination: 'Gauchar Airhead Staging',
-    capacity: 52,
-    pax: 50,
-    status: 'EN_ROUTE',
-    driver: 'Senior Driver Ajay Semwal',
-    fuel: 87,
-    axis: 'NH-07 South Corridor'
-  },
-  {
-    id: 'CONVOY-C3',
-    regNo: 'UTC-UK07-LC-8814',
-    model: 'Ashok Leyland 52-Str',
-    class: 'Long Distance Evac Coach',
-    pickup: 'Joshimath Civil Bus Stand',
-    destination: 'Gairsain Bhararisain Hub',
-    capacity: 52,
-    pax: 48,
-    status: 'EN_ROUTE',
-    driver: 'Driver B. P. Nautiyal',
-    fuel: 84,
-    axis: 'NH-109 Pindar Axis'
-  },
-  {
-    id: 'CONVOY-C4',
-    regNo: 'UTC-UK07-LC-8822',
-    model: 'Ashok Leyland 52-Str',
-    class: 'Long Distance Evac Coach',
-    pickup: 'Joshimath Lower Basti',
-    destination: 'Gairsain Bhararisain Hub',
-    capacity: 52,
-    pax: 0,
-    status: 'STAGED',
-    driver: 'Driver Sanjay Gairola',
-    fuel: 100,
-    axis: 'NH-109 Pindar Axis'
-  },
-  {
-    id: 'MEDIC-01',
-    regNo: 'NDRF-UK07-MED-01',
-    model: 'Force Traveller ALS ICU',
-    class: 'Mobile Trauma Ambulance',
-    pickup: 'Upper Sunil Scarp Triage',
-    destination: 'Gopeshwar Trauma Hub',
-    capacity: 4,
-    pax: 3,
-    status: 'EN_ROUTE',
-    driver: 'Dr. (Capt) Vikram Rana',
-    fuel: 97,
-    axis: 'NH-07 Upper Corridor'
-  },
-  {
-    id: 'MEDIC-02',
-    regNo: 'NDRF-UK07-MED-03',
-    model: 'Force Traveller ALS ICU',
-    class: 'Mobile Trauma Ambulance',
-    pickup: 'Helang Scree Lower Bypass',
-    destination: 'Pipalkoti Intermediate Hub',
-    capacity: 4,
-    pax: 2,
-    status: 'EN_ROUTE',
-    driver: 'Paramedic Sub-Insp. A. Arya',
-    fuel: 90,
-    axis: 'NH-07 Lower Axis (Helang)'
-  },
-  {
-    id: 'MEDIC-03',
-    regNo: 'ITBP-UK07-MED-05',
-    model: '4x4 All-Terrain Ambulance',
-    class: 'Mobile Trauma Ambulance',
-    pickup: 'Pipalkoti Intermediate Shelf',
-    destination: 'Gopeshwar Trauma Hub',
-    capacity: 4,
-    pax: 0,
-    status: 'STANDBY',
-    driver: 'Paramedic Naik M. Bisht',
-    fuel: 100,
-    axis: 'NH-07 Lower Axis (Pipalkoti)'
-  }
-];
+import { FLEET_DATA } from '../data/fleetData.js';
 
 export default function FleetTransitModal({ 
   isOpen, 
@@ -282,9 +30,10 @@ export default function FleetTransitModal({
   rainfall = 65, 
   isRoadBlocked = false 
 }) {
-  const [convoys, setConvoys] = useState(INITIAL_CONVOY_MANIFEST);
+  const [convoys, setConvoys] = useState(FLEET_DATA);
   const [toastMsg, setToastMsg] = useState(null);
   const [isBalancing, setIsBalancing] = useState(false);
+  const [filterMode, setFilterMode] = useState('ALL');
 
   useEffect(() => {
     let isMounted = true;
@@ -293,16 +42,19 @@ export default function FleetTransitModal({
         const liveFleet = await fetchLiveTransitFleet();
         if (liveFleet && liveFleet.length > 0 && isMounted) {
           setConvoys(prev => prev.map(c => {
-            const match = liveFleet.find(f => f.id === c.regNo || f.id === c.id);
+            const match = liveFleet.find(f => f.registration_no === c.reg || f.registration_no === c.id || f.id === c.id || f.id === c.reg);
             if (match) {
               let normStatus = match.status;
-              if (match.status === 'EN ROUTE') normStatus = 'EN_ROUTE';
+              if (match.status === 'EN_ROUTE' || match.status === 'EN ROUTE') normStatus = 'EN ROUTE';
               return {
                 ...c,
-                pax: match.manifest_load !== undefined && match.manifest_load !== null ? Number(match.manifest_load) : c.pax,
+                passengers: match.current_load !== undefined ? Number(match.current_load) : (match.manifest_load !== undefined ? Number(match.manifest_load) : c.passengers),
+                capacity: match.max_capacity ? Number(match.max_capacity) : c.capacity,
                 status: normStatus || c.status,
-                fuel: match.fuel_pct !== undefined && match.fuel_pct !== null ? Number(match.fuel_pct) : c.fuel,
-                driver: match.driver_name || c.driver
+                operator: match.operator_name || match.driver_name || c.operator,
+                pickup: match.origin_axis || c.pickup,
+                destination: match.destination_camp_name || c.destination,
+                type: match.vehicle_type || c.type
               };
             }
             return c;
@@ -328,26 +80,28 @@ export default function FleetTransitModal({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  const { activeTransitCount, totalPaxInTransit, passabilityStatus, passabilityBadgeClass } = useMemo(() => {
-    const rf = Number(rainfall) || 0;
+  const { activeTransitCount, standbyCount, totalPaxInTransit, totalCapacity, standbyCapacity, passabilityStatus, passabilityBadgeClass } = useMemo(() => {
+    const enRoute = convoys.filter(c => c.status === 'EN ROUTE' || c.status === 'EN_ROUTE' || c.status === 'BOARDING').length;
+    const standbyList = convoys.filter(c => c.status === 'STANDBY' || c.status === 'READY' || c.status === 'STAGED' || c.status === 'HALTED');
+    const standby = standbyList.length;
+    const totalPax = convoys.reduce((sum, c) => sum + Number(c.passengers || 0), 0);
+    const totalCap = convoys.reduce((sum, c) => sum + Number(c.capacity || 0), 0);
+    const standCap = standbyList.reduce((sum, c) => sum + Number(c.capacity || 0), 0);
 
-    let transitCount = 12;
-    if (rf > 100) transitCount = 14;
-    else if (rf < 50) transitCount = 8;
-
-    const totalPax = convoys.reduce((sum, c) => sum + Number(c.pax || 0), 0);
-
-    let passability = 'NH-07 CLEAR ALL-WEATHER';
+    let passability = 'NH-07 CLEAR';
     let badgeClass = 'bg-emerald-50 text-emerald-800 border-emerald-300 font-bold';
 
     if (isRoadBlocked) {
-      passability = '⛔ HELANG CHUTE BLOCKED (KM-48)';
+      passability = 'NH-07 BLOCKED AT HELANG (DIVERTING AIRHEAD)';
       badgeClass = 'bg-rose-50 text-rose-700 border-rose-400 font-bold animate-pulse';
     }
 
     return {
-      activeTransitCount: transitCount,
+      activeTransitCount: enRoute,
+      standbyCount: standby,
       totalPaxInTransit: totalPax,
+      totalCapacity: totalCap,
+      standbyCapacity: standCap,
       passabilityStatus: passability,
       passabilityBadgeClass: badgeClass
     };
@@ -355,12 +109,40 @@ export default function FleetTransitModal({
 
   if (!isOpen) return null;
 
+  const filteredConvoys = filterMode === 'EN_ROUTE' 
+    ? convoys.filter(c => c.status === 'EN ROUTE' || c.status === 'EN_ROUTE' || c.status === 'BOARDING')
+    : (filterMode === 'STANDBY' ? convoys.filter(c => c.status === 'STANDBY' || c.status === 'READY' || c.status === 'STAGED' || c.status === 'HALTED') : convoys);
+
+  const handleConvoyStateUpdate = async (convoyId, newStatus, newPax) => {
+    setConvoys(prev => prev.map(c => {
+      if (c.id === convoyId || c.reg === convoyId) {
+        const nextPax = newPax !== undefined ? newPax : c.passengers;
+        const nextStatus = newStatus !== undefined ? newStatus : c.status;
+        return { ...c, passengers: nextPax, status: nextStatus };
+      }
+      return c;
+    }));
+
+    const target = convoys.find(c => c.id === convoyId || c.reg === convoyId);
+    if (target) {
+      const dbId = target.reg || target.id;
+      const statusToPersist = newStatus !== undefined ? (newStatus === 'EN ROUTE' ? 'EN ROUTE' : newStatus) : target.status;
+      const paxToPersist = newPax !== undefined ? newPax : target.passengers;
+      await updateFleetStatus(dbId, statusToPersist, paxToPersist, {
+        reg: target.reg,
+        pickup: target.pickup,
+        destination: target.destination,
+        capacity: target.capacity
+      });
+    }
+  };
+
   const handleAutoBalance = async () => {
     setIsBalancing(true);
     const updatedConvoys = convoys.map(c => {
-      if (c.axis.includes('Upper Sunil') || c.pickup.includes('Sunil') || c.pickup.includes('Singhdhar')) {
-        const balancedPax = Math.min(c.capacity, Math.max(c.pax, Math.round(c.capacity * 0.95)));
-        return { ...c, pax: balancedPax, status: 'EN_ROUTE' };
+      if (c.axis.includes('Ridge') || c.pickup.includes('Sunil') || c.pickup.includes('Singhdhar') || c.pickup.includes('Manohar') || c.type.includes('Helicopter')) {
+        const balancedPax = Math.min(c.capacity, Math.max(c.passengers, Math.round(c.capacity * 0.95)));
+        return { ...c, passengers: balancedPax, status: 'EN ROUTE' };
       }
       return c;
     });
@@ -369,10 +151,15 @@ export default function FleetTransitModal({
 
     try {
       const persistPromises = updatedConvoys
-        .filter(c => c.axis.includes('Upper Sunil') || c.pickup.includes('Sunil') || c.pickup.includes('Singhdhar'))
+        .filter(c => c.axis.includes('Ridge') || c.pickup.includes('Sunil') || c.pickup.includes('Singhdhar') || c.pickup.includes('Manohar'))
         .map(c => {
-          const dbId = c.regNo || c.id;
-          return updateFleetStatus(dbId, 'EN ROUTE', c.pax);
+          const dbId = c.reg || c.id;
+          return updateFleetStatus(dbId, 'EN ROUTE', c.passengers, {
+            reg: c.reg,
+            pickup: c.pickup,
+            destination: c.destination,
+            capacity: c.capacity
+          });
         });
       await Promise.all(persistPromises);
     } catch (err) {
@@ -380,54 +167,48 @@ export default function FleetTransitModal({
     }
 
     setIsBalancing(false);
-    setToastMsg("🔀 FLEET AUTO-BALANCED: Priority bus allocation surged & synced to Supabase database.");
+    setToastMsg("🔀 FLEET AUTO-BALANCED: Critical ward transport units dispatched & synced.");
     setTimeout(() => setToastMsg(null), 4000);
   };
 
   return (
-    <div 
-      className="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto animate-in fade-in duration-150"
-      id="fleet-transit-modal-backdrop"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div className="bg-white rounded-xl border border-slate-300 shadow-2xl max-w-5xl w-full max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-
-        <div className="bg-slate-900 text-white px-5 py-3.5 flex items-center justify-between border-b border-slate-800 flex-shrink-0">
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 overflow-y-auto">
+      <div 
+        className="bg-white border border-slate-200 rounded-2xl w-full max-w-6xl overflow-hidden shadow-2xl flex flex-col font-sans text-slate-800 my-auto"
+        onClick={(e) => e.stopPropagation()}
+        id="modal-fleet-transit"
+      >
+        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-900 text-white">
           <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-lg bg-blue-700 text-white shadow-xs">
+            <span className="p-2 rounded-lg bg-blue-600 text-white shadow-xs">
               <Truck className="w-5 h-5 text-amber-400" />
-            </div>
+            </span>
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-xs sm:text-sm font-bold tracking-tight text-white uppercase font-mono-data">
+              <div className="flex items-center space-x-2">
+                <h2 className="text-base font-bold tracking-tight text-white uppercase font-sans">
                   CHAMOLI EMERGENCY TRANSIT FLEET &amp; CONVOY TELEMETRY
                 </h2>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                  18 TACTICAL VEHICLES ACTIVE
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800 font-mono">
+                  8 TACTICAL UNITS ACTIVE
                 </span>
               </div>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-[10px] text-slate-400 font-mono-data">
-                  Uttarakhand Transport Corporation (UTC) &bull; ITBP 1st Bn Logistics Wing &bull; NDRF Motor Pool
-                </span>
-              </div>
+              <p className="text-xs text-slate-400">
+                Uttarakhand Transport Corporation (UTC) &bull; ITBP 1st Bn &bull; IAF Mi-17 Air Wing &bull; NDRF Medical
+              </p>
             </div>
           </div>
-
-          <button
+          
+          <button 
             onClick={onClose}
-            className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
-            id="modal-fleet-close-x"
-            aria-label="Close modal"
+            className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer"
+            id="btn-close-fleet-modal"
           >
-            <X className="w-5 h-5" />
+            <X className="w-6 h-6" />
           </button>
         </div>
 
         {toastMsg && (
-          <div className="bg-slate-900 text-white border-b border-blue-500 px-4 py-2.5 text-xs font-semibold flex items-center justify-between animate-in fade-in">
+          <div className="mx-6 mt-4 bg-slate-900 text-white border-l-4 border-blue-500 px-4 py-2.5 rounded-lg text-xs font-semibold flex items-center justify-between shadow-lg">
             <div className="flex items-center gap-2">
               <Activity className="w-4 h-4 text-emerald-400 animate-pulse" />
               <span>{toastMsg}</span>
@@ -436,42 +217,40 @@ export default function FleetTransitModal({
           </div>
         )}
 
-        <div className="p-4 sm:p-6 overflow-y-auto space-y-4 bg-slate-50/50">
-
+        <div className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-
-            <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-xs">
+            <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-lg shadow-2xs">
               <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center justify-between">
                 <span>TOTAL ROLLING FLEET</span>
                 <Truck className="w-3.5 h-3.5 text-blue-700" />
               </div>
-              <div className="text-xl font-black text-slate-900 font-mono-data mt-1">
-                18 <span className="text-xs font-normal text-slate-500">Heavy Transports</span>
+              <div className="text-2xl font-black text-slate-900 font-mono-data mt-1">
+                {convoys.length} <span className="text-xs font-normal text-slate-500">Transports</span>
               </div>
               <div className="text-[10px] text-slate-600 font-medium mt-1">
-                10 Buses &bull; 5 ITBP 4x4s &bull; 3 ALS ICU
+                4 Buses &bull; 2 Bolero 4x4 &bull; 1 Heli &bull; 1 Ambulance
               </div>
             </div>
 
-            <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-xs">
+            <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-lg shadow-2xs">
               <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center justify-between">
                 <span>TOTAL SEATING LIFT</span>
                 <Users className="w-3.5 h-3.5 text-blue-700" />
               </div>
-              <div className="text-xl font-black text-slate-900 font-mono-data mt-1">
-                680 <span className="text-xs font-normal text-slate-500">Persons/Wave</span>
+              <div className="text-2xl font-black text-slate-900 font-mono-data mt-1">
+                {totalCapacity} <span className="text-xs font-normal text-slate-500">Seats/Wave</span>
               </div>
               <div className="text-[10px] text-slate-600 font-medium mt-1">
-                1,620 Capacity Max Deployment
+                Standby / Staged: {standbyCount} Units ({standbyCapacity} Seats Buffer)
               </div>
             </div>
 
-            <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-xs">
+            <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-lg shadow-2xs">
               <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center justify-between">
                 <span>ACTIVE IN TRANSIT</span>
                 <Navigation className="w-3.5 h-3.5 text-blue-700" />
               </div>
-              <div className="text-xl font-black text-blue-900 font-mono-data mt-1">
+              <div className="text-2xl font-black text-blue-900 font-mono-data mt-1">
                 {activeTransitCount} <span className="text-xs font-normal text-slate-500">Dispatched</span>
               </div>
               <div className="text-[10px] text-slate-600 font-medium mt-1">
@@ -479,104 +258,167 @@ export default function FleetTransitModal({
               </div>
             </div>
 
-            <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-xs">
+            <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-lg shadow-2xs">
               <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center justify-between">
                 <span>ROAD PASSABILITY</span>
                 <Route className="w-3.5 h-3.5 text-blue-700" />
               </div>
-              <div className="mt-1">
-                <span className={`text-[10px] px-2 py-0.5 rounded border inline-block ${passabilityBadgeClass}`}>
+              <div className="mt-2">
+                <span className={`text-[11px] px-2.5 py-1 rounded border inline-block ${passabilityBadgeClass}`}>
                   {passabilityStatus}
                 </span>
               </div>
               <div className="text-[10px] text-slate-600 font-medium mt-1">
-                Helang Chute Scree Zone Alert
+                Helang Scree &amp; Air Corridor Monitored
               </div>
             </div>
-
           </div>
 
           <div className="bg-white rounded-lg border border-slate-200 shadow-xs p-4 space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-2 gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-3 gap-3">
               <div className="flex items-center gap-2">
                 <Compass className="w-4 h-4 text-blue-900" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">
-                  TACTICAL CONVOY ROSTER &amp; AIS-140 DISPATCH MANIFEST
+                <h3 className="text-xs font-bold text-slate-900">
+                  Evacuation Fleet &amp; Transit Allocation ({filteredConvoys.length} Units)
                 </h3>
               </div>
-              <span className="text-[10px] text-slate-500 font-mono-data">
-                UPDATED REAL-TIME VIA STATE LOGISTICS NET
-              </span>
+
+              <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs">
+                <button
+                  onClick={() => setFilterMode('ALL')}
+                  className={`px-3 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                    filterMode === 'ALL'
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  All Fleets ({convoys.length})
+                </button>
+                <button
+                  onClick={() => setFilterMode('EN_ROUTE')}
+                  className={`px-3 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                    filterMode === 'EN_ROUTE'
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  En Route ({activeTransitCount})
+                </button>
+                <button
+                  onClick={() => setFilterMode('STANDBY')}
+                  className={`px-3 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                    filterMode === 'STANDBY'
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Standby ({standbyCount})
+                </button>
+              </div>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-100 text-[10px] font-bold text-slate-600 uppercase border-y border-slate-200 font-mono-data">
-                    <th className="py-2 px-2.5">Convoy / Vehicle Reg</th>
-                    <th className="py-2 px-2.5">Pickup Location &amp; Axis</th>
-                    <th className="py-2 px-2.5">Target Destination</th>
-                    <th className="py-2 px-2.5">Load Manifest</th>
-                    <th className="py-2 px-2.5">Telemetry Status</th>
+                    <th className="py-2.5 px-3">Vehicle &amp; Operator</th>
+                    <th className="py-2.5 px-3">Evacuation Transit Axis</th>
+                    <th className="py-2.5 px-3">Load Manifest</th>
+                    <th className="py-2.5 px-3">Status</th>
+                    <th className="py-2.5 px-3 text-right">Dispatch Control</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-[11px]">
-                  {convoys.map((c) => {
-                    const loadPct = Math.round((c.pax / c.capacity) * 100);
-                    const isPipalkotiAxis = c.axis.includes('Pipalkoti') || c.axis.includes('Helang');
-                    const isBlocked = isRoadBlocked && isPipalkotiAxis;
+                  {filteredConvoys.map((c) => {
+                    const loadPct = Math.round((Number(c.passengers || 0) / Number(c.capacity || 1)) * 100);
+                    const isNH07Vehicle = (c.axis.includes('NH-07') || c.axis.includes('Alaknanda')) && !c.type.includes('Helicopter');
+                    const isRerouted = isRoadBlocked && isNH07Vehicle;
+                    
+                    const effectiveDestination = isRerouted
+                      ? 'Gauchar Airhead Hub (Airlift)'
+                      : c.destination;
 
-                    let statusText = c.status === 'EN_ROUTE' ? 'EN ROUTE' : (c.status === 'BOARDING' ? 'BOARDING' : (c.status === 'STAGED' ? 'STAGED' : 'READY'));
-                    let statusClass = c.status === 'EN_ROUTE'
+                    const isEnRoute = c.status === 'EN ROUTE' || c.status === 'EN_ROUTE';
+                    let statusClass = isEnRoute
                       ? 'bg-blue-50 text-blue-700 border-blue-200'
                       : (c.status === 'BOARDING'
                       ? 'bg-amber-50 text-amber-800 border-amber-300'
-                      : 'bg-slate-100 text-slate-600 border-slate-200');
-
-                    if (isBlocked) {
-                      statusText = '⛔ HALTED AT HELANG CHUTE';
-                      statusClass = 'bg-rose-100 text-rose-800 border-rose-300 font-bold';
-                    }
+                      : (c.status === 'HALTED'
+                      ? 'bg-rose-50 text-rose-800 border-rose-300 font-bold'
+                      : 'bg-slate-100 text-slate-600 border-slate-200'));
 
                     return (
                       <tr key={c.id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="py-2.5 px-2.5 font-bold text-slate-900">
-                          <div className="flex items-center gap-1.5 font-mono">
-                            <span className={`w-2 h-2 rounded-full ${isBlocked ? 'bg-rose-600 animate-ping' : (c.status === 'EN_ROUTE' ? 'bg-emerald-500' : 'bg-slate-400')}`} />
-                            <span>{c.regNo}</span>
+                        <td className="py-2.5 px-3 font-bold text-slate-900">
+                          <div className="flex items-center gap-1.5 font-mono text-xs">
+                            <span className={`w-2 h-2 rounded-full ${isRerouted ? 'bg-amber-500 animate-pulse' : (isEnRoute ? 'bg-emerald-500' : 'bg-slate-400')}`} />
+                            <span className="tracking-tight font-bold font-mono">{c.reg}</span>
                           </div>
-                          <div className="text-[10px] text-slate-500 font-normal pl-3.5">{c.model} &bull; {c.driver}</div>
+                          <div className="text-[10px] text-slate-500 font-normal mt-0.5 pl-3.5">
+                            <span className="text-slate-700 font-medium">{c.type}</span> &bull; <span>{c.operator}</span>
+                          </div>
                         </td>
 
-                        <td className="py-2.5 px-2.5 text-slate-700">
-                          <div className="font-semibold text-slate-900 flex items-center gap-1">
-                            <MapPin className="w-3 h-3 text-red-600 flex-shrink-0" />
-                            <span>{c.pickup}</span>
+                        <td className="py-2.5 px-3 text-slate-700">
+                          <div className="flex items-center gap-1.5 font-semibold text-slate-900 text-xs flex-wrap">
+                            <span className="flex items-center gap-1 text-slate-800">
+                              <MapPin className="w-3 h-3 text-red-500 flex-shrink-0" />
+                              {c.pickup}
+                            </span>
+                            <ArrowRight className="w-3 h-3 text-blue-500 flex-shrink-0" />
+                            <span className="text-blue-900 font-bold flex items-center gap-1">
+                              {effectiveDestination}
+                            </span>
+                            {isRerouted && (
+                              <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 border border-amber-300 animate-pulse">
+                                REROUTED VIA RIDGE
+                              </span>
+                            )}
                           </div>
-                          <div className="text-[10px] text-slate-500 pl-4">{c.axis}</div>
+                          <div className="text-[10px] text-slate-400 mt-0.5 pl-4">
+                            <span>{c.axis}</span>
+                          </div>
                         </td>
 
-                        <td className="py-2.5 px-2.5 text-slate-700">
-                          <div className="font-semibold text-blue-950">{c.destination}</div>
-                          <div className="text-[10px] text-emerald-700 font-medium">Fuel Reserve: {c.fuel}%</div>
-                        </td>
-
-                        <td className="py-2.5 px-2.5">
-                          <div className="font-mono font-bold text-slate-900 text-xs">
-                            {c.pax} <span className="text-[10px] text-slate-500 font-normal">/ {c.capacity} Seats ({loadPct}%)</span>
+                        <td className="py-2.5 px-3 min-w-[130px]">
+                          <div className="font-mono text-xs text-slate-900 font-semibold flex items-center justify-between">
+                            <span>{c.passengers}/{c.capacity}</span>
+                            <span className="text-[10px] text-slate-500 font-normal">({loadPct}%)</span>
                           </div>
-                          <div className="w-24 bg-slate-200 h-1.5 rounded-full overflow-hidden mt-1">
+                          <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-1 border border-slate-200">
                             <div 
-                              className={`h-full ${loadPct >= 90 ? 'bg-red-600' : (loadPct > 0 ? 'bg-blue-600' : 'bg-slate-300')}`}
-                              style={{ width: `${loadPct}%` }}
+                              className={`h-full transition-all duration-300 ${
+                                loadPct >= 95 ? 'bg-amber-500' : (loadPct > 0 ? 'bg-blue-600' : 'bg-slate-300')
+                              }`}
+                              style={{ width: `${Math.min(loadPct, 100)}%` }}
                             />
                           </div>
                         </td>
 
-                        <td className="py-2.5 px-2.5">
+                        <td className="py-2.5 px-3">
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border font-mono ${statusClass}`}>
-                            {statusText}
+                            {c.status}
                           </span>
+                        </td>
+
+                        <td className="py-2.5 px-3 text-right whitespace-nowrap">
+                          {isEnRoute ? (
+                            <button
+                              onClick={() => handleConvoyStateUpdate(c.id, 'HALTED', c.passengers)}
+                              className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded text-[10px] font-bold inline-flex items-center gap-1 cursor-pointer transition shadow-2xs"
+                              title="Halt convoy"
+                            >
+                              <Square className="w-2.5 h-2.5" /> Halt
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleConvoyStateUpdate(c.id, 'EN ROUTE', Math.max(c.passengers, c.capacity))}
+                              className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[10px] font-bold inline-flex items-center gap-1 cursor-pointer transition shadow-2xs"
+                              title="Dispatch convoy"
+                            >
+                              <Play className="w-2.5 h-2.5" /> Dispatch
+                            </button>
+                          )}
                         </td>
                       </tr>
                     );
@@ -585,51 +427,26 @@ export default function FleetTransitModal({
               </table>
             </div>
           </div>
-
         </div>
 
-        <div className="bg-slate-900 px-5 py-3.5 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 flex-shrink-0">
-          <div className="text-left">
-            <div className="text-[11px] text-slate-300 font-mono-data font-bold flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-              GPS Telemetry Hash: <span className="text-amber-400">AIS140-UK07-2026-DISPATCH</span>
-            </div>
-            <div className="text-[10px] text-slate-400 font-mono-data mt-0.5">
-              Encrypted Real-Time Paging &bull; 1.2s Vehicle Refresh Rate
-            </div>
+        <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2 text-slate-600">
+            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span className="font-semibold text-slate-800">AIS-140 Vehicle Tracking Active</span>
+            <span className="text-slate-400">•</span>
+            <span>Control Cell: Chamoli District Transport Office (ARTO)</span>
           </div>
 
-          <div className="flex items-center space-x-2.5 w-full sm:w-auto justify-end">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => window.print()}
-              className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 active:bg-slate-850 text-white text-xs font-bold rounded-lg transition-all border border-slate-700 flex items-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap"
-              id="btn-modal-export-fleet-manifest"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded font-medium shadow-xs cursor-pointer transition-colors"
             >
-              <FileText className="w-3.5 h-3.5 text-amber-400" />
-              <span>Export Driver &amp; Manifest Sheet</span>
-            </button>
-
-            <button
-              onClick={handleAutoBalance}
-              disabled={isBalancing}
-              className="px-4 py-2 bg-blue-700 hover:bg-blue-600 active:bg-blue-800 text-white text-xs font-black uppercase tracking-wider rounded-lg shadow-lg border border-blue-500 flex items-center gap-2 cursor-pointer transition-all whitespace-nowrap"
-              id="btn-modal-autobalance"
-            >
-              {isBalancing ? (
-                <>
-                  <RefreshCw className="w-4 h-4 animate-spin text-white" />
-                  <span>OPTIMIZING ASSIGNMENTS...</span>
-                </>
-              ) : (
-                <>
-                  <Zap className="w-4 h-4 text-amber-300" />
-                  <span>🔀 Auto-Balance Fleet Allocation</span>
-                </>
-              )}
+              <FileText className="w-3.5 h-3.5 text-slate-500" />
+              Export Driver Sheet
             </button>
           </div>
         </div>
-
       </div>
     </div>
   );

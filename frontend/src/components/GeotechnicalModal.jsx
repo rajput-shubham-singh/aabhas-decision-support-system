@@ -112,38 +112,32 @@ export default function GeotechnicalModal({ sector, rainfall = 35, onClose }) {
         onClick={(e) => e.stopPropagation()}
       >
 
-        <div className="bg-[#0b192c] text-white px-5 py-4 flex items-center justify-between border-b border-slate-700">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-900/80 border border-cyan-400/40 flex items-center justify-center shadow-inner flex-shrink-0">
-              <Activity className="w-5 h-5 text-cyan-300" />
+            <div className="w-9 h-9 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-800 shrink-0 shadow-xs">
+              <Activity className="w-5 h-5" />
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-sm sm:text-base font-bold tracking-tight uppercase">
-                  GEOTECHNICAL SUBSURFACE DIAGNOSTIC TELEMETRY
-                </h2>
-                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-500/50 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
-                  ISRO-NRSC / WIHG SENSOR NETWORK ACTIVE
+                <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                  GEOTECHNICAL REPORT
+                </span>
+                <span className="text-xs text-slate-500 font-medium">
+                  {sector.name} • Tehsil: {sector.tehsil || "Joshimath"} • RPI: {geotech.rpi}/100
                 </span>
               </div>
-              <div className="text-xs text-slate-300 font-mono mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5">
-                <span className="text-cyan-300 font-semibold">{sector.name}</span>
-                <span>Tehsil: {sector.tehsil || "Joshimath Tehsil"}</span>
-                {sector.coords && (
-                  <span>GPS: [{sector.coords[0].toFixed(4)}, {sector.coords[1].toFixed(4)}]</span>
-                )}
-                <span>RPI: {geotech.rpi}/100</span>
-              </div>
+              <h3 className="text-base font-bold text-slate-900 mt-1">
+                Subsurface Diagnostics &amp; Slope Stability Profile
+              </h3>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer border border-slate-600 flex-shrink-0"
-            title="Close Diagnostic Modal (Esc)"
+            className="text-slate-400 hover:text-slate-600 text-lg font-bold p-1 cursor-pointer transition-colors"
+            title="Close Dialog"
           >
-            <X className="w-5 h-5" />
+            ✕
           </button>
         </div>
 
@@ -171,8 +165,8 @@ export default function GeotechnicalModal({ sector, rainfall = 35, onClose }) {
                 </span>
                 <span className="text-xs font-semibold text-slate-600">FoS</span>
               </div>
-              <div className="text-[10px] font-mono text-slate-500 leading-tight">
-                Limit Equilibrium (Bishop Simplified)
+              <div className="text-[10px] text-slate-500 leading-tight">
+                Slope Saturation Risk Assessment
               </div>
               <div className="mt-2 pt-1.5 border-t border-slate-200/80">
                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded font-mono ${
@@ -298,7 +292,7 @@ export default function GeotechnicalModal({ sector, rainfall = 35, onClose }) {
                   {geotech.isCriticalFoS
                     ? `Factor of Safety (${geotech.dynamicFoS}) is below critical threshold under ${rainfall}mm simulated rain. Immediate transit corridor activation to ${sector.shelter || sector.allocated_camp || "Designated Safe Relief Hub"} required.`
                     : geotech.isWarningFoS
-                    ? `Subsidence velocity has accelerated under precipitation infiltration. Maintain continuous telemetry downlink with ISRO-NRSC and pre-stage transit buses.`
+                    ? `Subsidence velocity has accelerated under precipitation infiltration. Maintain continuous satellite telemetry feed and pre-stage transit buses.`
                     : `Slope exhibits intact bedrock cohesion without active subsurface shear failure. Bedrock spur maintains geotechnical structural integrity.`}
                 </div>
               </div>
@@ -307,9 +301,9 @@ export default function GeotechnicalModal({ sector, rainfall = 35, onClose }) {
         </div>
 
         <div className="bg-slate-50 px-5 py-3 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2 text-slate-500 font-mono text-[11px]">
+          <div className="flex items-center gap-2 text-slate-600 text-[11px]">
             <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span>Live Sync: UTC+05:30 Chamoli EOC Piezometer Feed &middot; Latency: 38ms</span>
+            <span>Live Sync: Chamoli District Emergency Operations Center (DEOC) Telemetry Link</span>
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
